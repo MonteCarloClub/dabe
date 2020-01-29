@@ -2,9 +2,7 @@ package MulticenterABEForFabric
 
 import (
 	"github.com/Nik-U/pbc"
-	//	"fmt"
 	"math/big"
-	//"fmt"
 )
 
 type CurveParam struct {

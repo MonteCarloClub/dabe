@@ -1,7 +1,6 @@
 package MulticenterABEForFabric
 
 import (
-	//"fmt"
 	"bytes"
 	"encoding/gob"
 	"fmt"
