@@ -1,7 +1,8 @@
-package MulticenterABEForFabric
+package DecentralizedABE
 
 import (
 	"github.com/Nik-U/pbc"
+	"hash"
 	"math/big"
 )
 
@@ -47,5 +48,25 @@ func (this *CurveParam) GetNewGT() *pbc.Element {
 
 func (this *CurveParam) GetNewZn() *pbc.Element {
 	g := this.Pairing.NewUncheckedElement(3).Rand()
+	return g
+}
+
+func (this *CurveParam) GetZnFromStringHash(s string, hash hash.Hash) *pbc.Element {
+	g := this.Pairing.NewUncheckedElement(3).SetFromStringHash(s, hash)
+	return g
+}
+
+func (this *CurveParam) Get0FromG1() *pbc.Element {
+	g := this.Pairing.NewUncheckedElement(0).Set0()
+	return g
+}
+
+func (this *CurveParam) Get0FromGT() *pbc.Element {
+	g := this.Pairing.NewUncheckedElement(2).Set0()
+	return g
+}
+
+func (this *CurveParam) Get0FromZn() *pbc.Element {
+	g := this.Pairing.NewUncheckedElement(3).Set0()
 	return g
 }

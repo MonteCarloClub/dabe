@@ -1,30 +1,39 @@
-package MulticenterABEForFabric
+package DecentralizedABE
 
 import (
 	"github.com/Nik-U/pbc"
 )
 
 /* Public Key Structure */
-type PK struct {
-	Gy       *pbc.Element //G^y, y from Zp
+type APK struct {
+	Gy *pbc.Element //G^y, y from Zp
 }
 
-func (p *PK) Initialize(gy *pbc.Element) {
+func (p *APK) Initialize(gy *pbc.Element) {
 	p.Gy = gy
 }
 
-func (p *PK) getGy() *pbc.Element {
+func (p *APK) getGy() *pbc.Element {
 	return p.Gy.NewFieldElement().Set(p.Gy)
 }
 
-type SK struct {
-	Y     *pbc.Element
+type ASK struct {
+	Y *pbc.Element
 }
 
-func (s *SK) Initialize(y *pbc.Element) {
+func (s *ASK) Initialize(y *pbc.Element) {
 	s.Y = y
 }
 
-func (s *SK) getY() *pbc.Element {
+func (s *ASK) getY() *pbc.Element {
 	return s.Y.NewFieldElement().Set(s.Y)
+}
+
+type OPKPart struct {
+	EGGAlphaPart *pbc.Element //part of org's EGGAlpha
+	GyPart     map[string]*pbc.Element //part of org attrs' gy
+}
+type OSKPart struct {
+	AlphaPart *pbc.Element            //part of org's Alpha
+	YPart     map[string]*pbc.Element //part of org attrs' y
 }

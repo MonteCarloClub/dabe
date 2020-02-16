@@ -1,4 +1,4 @@
-package MulticenterABEForFabric
+package DecentralizedABE
 
 import (
 	"crypto/sha256"
@@ -23,15 +23,38 @@ func (d *DABE) GlobalSetup() {
 	fmt.Println("DABE GlobalSetup success")
 }
 
-func (d *DABE) AuthoritySetup(name string) *Authority {
-	fmt.Println("DABE AuthoritySetup start")
+func (d *DABE) UserSetup(name string) *User {
+	fmt.Println("DABE UserSetup start")
 	alpha := d.CurveParam.GetNewZn()
 	eGGAlpha := d.EGG.NewFieldElement().PowZn(d.EGG, alpha)
-	fmt.Printf("DABE AuthoritySetup success for %s\n", name)
-	return &Authority{make(map[string]*PK), make(map[string]*SK), eGGAlpha, alpha, name}
+	fmt.Printf("DABE UserSetup success for %s\n", name)
+	return &User{make(map[string]*APK), make(map[string]*ASK), eGGAlpha, alpha, name}
 }
 
-func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]*Authority) (*Cipher, error) {
+func (d *DABE) OrgSetup(n, t int, name string, userNames []string) (*Org, error) {
+	fmt.Println("DABE OrgSetup start")
+	if t > n {
+		return nil, fmt.Errorf("threshold can not bigger than n")
+	}
+	if len(userNames) != n {
+		return nil, fmt.Errorf("userNames' length doesn't eq n")
+	}
+	hash := sha256.New()
+	User2Hash := make(map[string]*pbc.Element)
+	for _, userName := range userNames {
+		hashId := d.CurveParam.GetZnFromStringHash(userName, hash)
+		User2Hash[userName] = hashId
+	}
+	fmt.Printf("DABE OrgSetup success for %s\n", name)
+	return &Org{
+		Name:      name,
+		N:         n,
+		T:         t,
+		UserNames: User2Hash,
+	}, nil
+}
+
+func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]Authority) (*Cipher, error) {
 	fmt.Println("DABE Encrypt start")
 	aesKey := d.EGG.NewFieldElement().Rand()
 	aesCipherText, err := AES.AesEncrypt([]byte(m), (aesKey.Bytes())[0:32])
@@ -71,11 +94,11 @@ func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]*Authori
 		if authorities[splitN[0]] == nil {
 			return nil, fmt.Errorf("authority not found, error when %s", attrStr)
 		}
-		if authorities[splitN[0]].PKMap[splitN[1]] == nil {
+		if authorities[splitN[0]].GetAPKMap()[splitN[1]] == nil {
 			return nil, fmt.Errorf("pk not found, error when %s", attrStr)
 		}
 		authority := authorities[splitN[0]]
-		pk := authority.PKMap[splitN[1]]
+		pk := authority.GetAPKMap()[splitN[1]]
 		//r
 		r := d.CurveParam.GetNewZn()
 		//c2 = g^r
@@ -86,7 +109,7 @@ func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]*Authori
 		//e(g,g)^(Ai*v)
 		c1 := d.EGG.NewFieldElement().PowZn(d.EGG, AiV)
 		//c1 = e(g,g)^(Ai*v) * e(g,g)^ ( alpha_p(x) * r_x )
-		rightTemp := authority.EGGAlpha.NewFieldElement().PowZn(authority.EGGAlpha, r)
+		rightTemp := authority.GetPK().NewFieldElement().PowZn(authority.GetPK(), r)
 		c1.Mul(c1, rightTemp)
 
 		//Ai*w

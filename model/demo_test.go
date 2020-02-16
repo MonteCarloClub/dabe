@@ -1,4 +1,4 @@
-package MulticenterABEForFabric
+package DecentralizedABE
 
 import (
 	"fmt"
@@ -13,26 +13,26 @@ func TestDemo(t *testing.T) {
 	dabe.GlobalSetup()
 
 	//初始化两个不同的权限管理机构，并保存
-	authorityMap := make(map[string]*Authority)
-	fudanUniversity := dabe.AuthoritySetup("Fudan_University")
+	authorityMap := make(map[string]Authority)
+	fudanUniversity := dabe.UserSetup("Fudan_University")
 	authorityMap["Fudan_University"] = fudanUniversity
-	ageAuthority := dabe.AuthoritySetup("Age_Authority")
+	ageAuthority := dabe.UserSetup("Age_Authority")
 	authorityMap["Age_Authority"] = ageAuthority
 
 	//保存所有属性公钥
-	pkMap := make(map[string]*PK)
+	pkMap := make(map[string]*APK)
 	//生成属性私钥
-	tempPk, err := fudanUniversity.GenerateNewAttr("在读研究生", dabe.CurveParam, dabe.G)
+	tempPk, err := fudanUniversity.GenerateNewAttr("在读研究生", dabe)
 	if err != nil {
 		panic(err)
 	}
 	pkMap["Fudan_University:在读研究生"] = tempPk
-	tempPk2, err := ageAuthority.GenerateNewAttr("23", dabe.CurveParam, dabe.G)
+	tempPk2, err := ageAuthority.GenerateNewAttr("23", dabe)
 	if err != nil {
 		panic(err)
 	}
 	pkMap["Age_Authority:23"] = tempPk2
-	tempPk3, err := ageAuthority.GenerateNewAttr("24", dabe.CurveParam, dabe.G)
+	tempPk3, err := ageAuthority.GenerateNewAttr("24", dabe)
 	if err != nil {
 		panic(err)
 	}
@@ -42,15 +42,15 @@ func TestDemo(t *testing.T) {
 	user1Privatekeys := make(map[string]*pbc.Element)
 	user2Privatekeys := make(map[string]*pbc.Element)
 
-	user1Privatekey1, err := fudanUniversity.KeyGen("陈泽宁", dabe.G, "在读研究生")
+	user1Privatekey1, err := fudanUniversity.KeyGen("陈泽宁", "在读研究生", dabe)
 	if err != nil {
 		panic(err)
 	}
-	user1Privatekey2, err := ageAuthority.KeyGen("陈泽宁", dabe.G, "23")
+	user1Privatekey2, err := ageAuthority.KeyGen("陈泽宁", "23", dabe)
 	if err != nil {
 		panic(err)
 	}
-	user2Privatekey1, err := ageAuthority.KeyGen("24岁的无名氏", dabe.G, "24")
+	user2Privatekey1, err := ageAuthority.KeyGen("24岁的无名氏", "24", dabe)
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package MulticenterABEForFabric
+package DecentralizedABE
 
 import (
 	"strings"
