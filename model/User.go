@@ -1,9 +1,9 @@
 package DecentralizedABE
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"github.com/Nik-U/pbc"
-	"github.com/cloudflare/cfssl/scan/crypto/sha256"
 )
 
 type User struct {
@@ -12,8 +12,8 @@ type User struct {
 	EGGAlpha *pbc.Element
 	Alpha    *pbc.Element
 	Name     string
-	OPKMap	map[string]*OPKPart
-	OSKMap	map[string]*OSKPart
+	OPKMap   map[string]*OPKPart
+	OSKMap   map[string]*OSKPart
 }
 
 func (u *User) GetPK() *pbc.Element {
@@ -47,20 +47,46 @@ func (u *User) KeyGen(gid string, attr string, d *DABE) (*pbc.Element, error) {
 	return key, nil
 }
 
-func (u *User) GenerateOrgShare(n,t int, userNames map[string]*pbc.Element) ([]*pbc.Element, error) {
+//创建Org所需的秘密share
+func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, orgName string, d *DABE) (
+	map[string]*pbc.Element, error) {
 
+	if u.OSKMap[orgName] != nil || u.OPKMap[orgName] != nil {
+		return nil, fmt.Errorf("already has this org")
+	}
+	alphaPart := d.CurveParam.GetNewZn()
+	f := make([]*pbc.Element, 0, 0)
+	f = append(f, alphaPart)
+	for i := 1; i < t; i++ {
+		f = append(f, d.CurveParam.GetNewZn())
+	}
+	oskPart := &OSKPart{
+		AlphaPart: alphaPart,
+		F:         f,
+		N:         n,
+		T:         t,
+	}
+	opkPart := &OPKPart{
+		EGGAlphaPart: d.CurveParam.Get0FromGT().PowZn(d.EGG, alphaPart),
+	}
+	u.OSKMap[orgName] = oskPart
+	u.OPKMap[orgName] = opkPart
+
+	shares := make(map[string]*pbc.Element)
+	for name, hGID := range userNames {
+		shares[name] = u.share(hGID, d, n, t, f)
+	}
+	return shares, nil
 }
 
 //get sij
-func (u *User) share(idb []uint8, d *DABE, n,t int) *pbc.Element {
-	id := d.CurveParam.GetNewZn().SetBytes(idb)
-	sij := d.CurveParam.GetNewZn().Set0().ThenAdd(u.F[0])
-	for index := 1; index < t; index++ {
-		temp := d.CurveParam.GetNewZn().Set1().ThenMul(u.F[index])
-		for i := 1; i <= index; i++ {
-			temp.ThenMul(id)
-		}
-		sij.ThenAdd(temp)
+func (u *User) share(otherHGID *pbc.Element, d *DABE, n, t int, f []*pbc.Element) *pbc.Element {
+	sij := d.CurveParam.Get0FromZn()
+	//from t-1 -> 1, O(t)
+	for index := t - 1; index >= 1; index-- {
+		sij.ThenAdd(f[index])
+		sij.ThenMul(otherHGID)
 	}
+	sij.ThenAdd(f[0])
 	return sij
 }
