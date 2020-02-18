@@ -79,6 +79,40 @@ func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, org
 	return shares, nil
 }
 
+//创建Org属性所需的秘密share
+func (u *User) GenerateOrgAttrShare(n, t int, org *Org, d *DABE, attrName string) (
+	map[string]*pbc.Element, error) {
+
+	if !CheckAttrName(attrName, org.Name) {
+		return nil, fmt.Errorf("attrName is invalid")
+	}
+	if u.OSKMap[org.Name] == nil || u.OPKMap[org.Name] == nil {
+		return nil, fmt.Errorf("doesn't has this org")
+	}
+	if u.OSKMap[org.Name].ASKPartMap[attrName] != nil || u.OPKMap[org.Name].GyPart[attrName] != nil {
+		return nil, fmt.Errorf("already has this attr")
+	}
+	yPart := d.CurveParam.GetNewZn()
+	f := make([]*pbc.Element, 0, 0)
+	f = append(f, yPart)
+	for i := 1; i < t; i++ {
+		f = append(f, d.CurveParam.GetNewZn())
+	}
+
+	askPart := &ASKPart{
+		F:           f,
+		YPart:       yPart,
+	}
+	u.OPKMap[org.Name].GyPart[attrName] = d.CurveParam.Get0FromG1().PowZn(d.G, yPart)
+	u.OSKMap[org.Name].ASKPartMap[attrName] = askPart
+
+	shares := make(map[string]*pbc.Element)
+	for name, hGID := range org.UserNames {
+		shares[name] = u.share(hGID, d, n, t, f)
+	}
+	return shares, nil
+}
+
 //get sij
 func (u *User) share(otherHGID *pbc.Element, d *DABE, n, t int, f []*pbc.Element) *pbc.Element {
 	sij := d.CurveParam.Get0FromZn()

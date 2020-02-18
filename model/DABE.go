@@ -87,18 +87,15 @@ func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]Authorit
 	for i := 0; i < n; i++ {
 		//attr
 		attrStr := policy.AccessStruct.PolicyMaps[i+1]
-		splitN := strings.SplitN(attrStr, ":", 2)
-		if len(splitN) != 2 {
-			return nil, fmt.Errorf("attr is invalid, must be authorityName:attrName, error when %s", attrStr)
-		}
-		if authorities[splitN[0]] == nil {
+		authorityName := GetAuthorityNameFromAttrName(attrStr)
+		if authorities[authorityName] == nil {
 			return nil, fmt.Errorf("authority not found, error when %s", attrStr)
 		}
-		if authorities[splitN[0]].GetAPKMap()[splitN[1]] == nil {
+		authority := authorities[authorityName]
+		pk := authority.GetAPKMap()[attrStr]
+		if pk == nil {
 			return nil, fmt.Errorf("pk not found, error when %s", attrStr)
 		}
-		authority := authorities[splitN[0]]
-		pk := authority.GetAPKMap()[splitN[1]]
 		//r
 		r := d.CurveParam.GetNewZn()
 		//c2 = g^r

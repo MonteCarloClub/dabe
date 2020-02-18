@@ -150,3 +150,21 @@ func GetPadding(m int, l int, depth int) string {
 	}
 	return sp[len(sp)-(depth-1):]
 }
+
+// 检查属性是否以组织/用户名称为前缀
+func CheckAttrName(attrName, authorityName string) bool{
+	splitN := strings.SplitN(attrName, ":", 2)
+	if len(splitN) != 2 {
+		return false
+	}
+	return authorityName == splitN[0]
+}
+
+// 根据属性名称获取组织/用户名，出错返回空字符串
+func GetAuthorityNameFromAttrName(attrName string) string{
+	splitN := strings.SplitN(attrName, ":", 2)
+	if len(splitN) != 2 {
+		return ""
+	}
+	return splitN[0]
+}

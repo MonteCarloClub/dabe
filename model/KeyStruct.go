@@ -34,10 +34,15 @@ type OPKPart struct {
 	GyPart       map[string]*pbc.Element //part of org attrs' gy
 }
 type OSKPart struct {
-	AlphaPart   *pbc.Element            //part of org's Alpha
-	YPart       map[string]*pbc.Element //part of org attrs' y
-	F           []*pbc.Element          //for shamir's share
+	AlphaPart   *pbc.Element        //part of org's Alpha
+	ASKPartMap  map[string]*ASKPart //part of org attrs' y
+	F           []*pbc.Element      //for shamir's share
 	N           int
 	T           int
 	OthersShare []*pbc.Element //for some special time
+}
+type ASKPart struct {
+	F           []*pbc.Element //for shamir's share
+	OthersShare []*pbc.Element //for some special time
+	YPart       *pbc.Element
 }
