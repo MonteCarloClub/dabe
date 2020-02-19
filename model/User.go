@@ -14,6 +14,7 @@ type User struct {
 	Name     string
 	OPKMap   map[string]*OPKPart
 	OSKMap   map[string]*OSKPart
+	KeyMap   map[string]*pbc.Element
 }
 
 func (u *User) GetPK() *pbc.Element {
@@ -37,13 +38,26 @@ func (u *User) GenerateNewAttr(attr string, d *DABE) (*APK, error) {
 	return &pk, nil
 }
 
-func (u *User) KeyGen(gid string, attr string, d *DABE) (*pbc.Element, error) {
+//授权用户属性
+func (u *User) KeyGenByUser(gid string, attr string, d *DABE) (*pbc.Element, error) {
 	if u.ASKMap[attr] == nil {
 		return nil, fmt.Errorf("don't have this attr, error when %s", attr)
 	}
 	temp := sha256.Sum256([]byte(gid))
 	hashGid := d.G.NewFieldElement().SetBytes(temp[:])
 	key := d.G.NewFieldElement().PowZn(d.G, u.Alpha).ThenMul(hashGid.ThenPowZn(u.ASKMap[attr].Y))
+	return key, nil
+}
+
+//授权组织属性
+func (u *User) KeyGenByOrg(gid string, attr string, d *DABE, orgName string) (*pbc.Element, error) {
+	if u.OSKMap[orgName] == nil || u.OSKMap[orgName].ASKPartMap[attr] == nil {
+		return nil, fmt.Errorf("don't have this attr, error when %s", attr)
+	}
+	temp := sha256.Sum256([]byte(gid))
+	hashGid := d.G.NewFieldElement().SetBytes(temp[:])
+	key := d.G.NewFieldElement().Set(u.OSKMap[orgName].GAlphaPart).
+		ThenMul(hashGid.ThenPowZn(u.OSKMap[orgName].ASKPartMap[attr].YPart))
 	return key, nil
 }
 
@@ -55,16 +69,18 @@ func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, org
 		return nil, fmt.Errorf("already has this org")
 	}
 	alphaPart := d.CurveParam.GetNewZn()
+	gAlphaPart := d.CurveParam.Get0FromG1().PowZn(d.G, alphaPart)
 	f := make([]*pbc.Element, 0, 0)
 	f = append(f, alphaPart)
 	for i := 1; i < t; i++ {
 		f = append(f, d.CurveParam.GetNewZn())
 	}
 	oskPart := &OSKPart{
-		AlphaPart: alphaPart,
-		F:         f,
-		N:         n,
-		T:         t,
+		AlphaPart:  alphaPart,
+		F:          f,
+		N:          n,
+		T:          t,
+		GAlphaPart: gAlphaPart,
 	}
 	opkPart := &OPKPart{
 		EGGAlphaPart: d.CurveParam.Get0FromGT().PowZn(d.EGG, alphaPart),
@@ -100,8 +116,8 @@ func (u *User) GenerateOrgAttrShare(n, t int, org *Org, d *DABE, attrName string
 	}
 
 	askPart := &ASKPart{
-		F:           f,
-		YPart:       yPart,
+		F:     f,
+		YPart: yPart,
 	}
 	u.OPKMap[org.Name].GyPart[attrName] = d.CurveParam.Get0FromG1().PowZn(d.G, yPart)
 	u.OSKMap[org.Name].ASKPartMap[attrName] = askPart
@@ -111,6 +127,31 @@ func (u *User) GenerateOrgAttrShare(n, t int, org *Org, d *DABE, attrName string
 		shares[name] = u.share(hGID, d, n, t, f)
 	}
 	return shares, nil
+}
+
+//组装组织属性
+func (u *User) AssembleOrgAttr(names []string, name2attr map[string]*pbc.Element,
+	name2gid map[string]*pbc.Element, d *DABE, t int, attr string) error {
+
+	if len(name2attr) != t || len(name2gid) != t {
+		return fmt.Errorf("length not enough")
+	}
+	key := d.CurveParam.Get1FromG1()
+
+	for i := 0; i < t; i++ {
+		up := d.CurveParam.Get1FromZn()
+		for j := 0; j < t; j++ {
+			if i == j {
+				continue
+			}
+			di := d.CurveParam.Get0FromZn().Sub(name2gid[names[j]], name2gid[names[i]])
+			di = d.CurveParam.GetNewZn().Div(name2gid[names[j]], di)
+			up.ThenMul(di)
+		}
+		key.ThenMul(d.CurveParam.Get0FromGT().PowZn(name2attr[names[i]], up))
+	}
+	u.KeyMap[attr] = key
+	return nil
 }
 
 //get sij

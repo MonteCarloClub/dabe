@@ -40,6 +40,7 @@ type OSKPart struct {
 	N           int
 	T           int
 	OthersShare []*pbc.Element //for some special time
+	GAlphaPart  *pbc.Element   //for easy use
 }
 type ASKPart struct {
 	F           []*pbc.Element //for shamir's share

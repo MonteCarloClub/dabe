@@ -70,3 +70,18 @@ func (this *CurveParam) Get0FromZn() *pbc.Element {
 	g := this.Pairing.NewUncheckedElement(3).Set0()
 	return g
 }
+
+func (this *CurveParam) Get1FromG1() *pbc.Element {
+	g := this.Pairing.NewUncheckedElement(0).Set1()
+	return g
+}
+
+func (this *CurveParam) Get1FromGT() *pbc.Element {
+	g := this.Pairing.NewUncheckedElement(2).Set1()
+	return g
+}
+
+func (this *CurveParam) Get1FromZn() *pbc.Element {
+	g := this.Pairing.NewUncheckedElement(3).Set1()
+	return g
+}

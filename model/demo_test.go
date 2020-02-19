@@ -42,15 +42,15 @@ func TestDemo(t *testing.T) {
 	user1Privatekeys := make(map[string]*pbc.Element)
 	user2Privatekeys := make(map[string]*pbc.Element)
 
-	user1Privatekey1, err := fudanUniversity.KeyGen("陈泽宁", "在读研究生", dabe)
+	user1Privatekey1, err := fudanUniversity.KeyGenByUser("陈泽宁", "在读研究生", dabe)
 	if err != nil {
 		panic(err)
 	}
-	user1Privatekey2, err := ageAuthority.KeyGen("陈泽宁", "23", dabe)
+	user1Privatekey2, err := ageAuthority.KeyGenByUser("陈泽宁", "23", dabe)
 	if err != nil {
 		panic(err)
 	}
-	user2Privatekey1, err := ageAuthority.KeyGen("24岁的无名氏", "24", dabe)
+	user2Privatekey1, err := ageAuthority.KeyGenByUser("24岁的无名氏", "24", dabe)
 	if err != nil {
 		panic(err)
 	}

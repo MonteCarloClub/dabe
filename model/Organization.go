@@ -28,9 +28,9 @@ func (o *Org) GenerateOPK(names []string, pks []*pbc.Element, d *DABE) error {
 		return fmt.Errorf("pks or names isn't eq t")
 	}
 
-	eGGAlpha := d.CurveParam.Get0FromGT().Set1()
+	eGGAlpha := d.CurveParam.Get1FromGT()
 	for i := 0 ; i< o.T ;i++ {
-		up := d.CurveParam.Get0FromZn().Set1()
+		up := d.CurveParam.Get1FromZn()
 		for j := 0; j < o.T; j++ {
 			if i == j {
 				continue
@@ -54,9 +54,9 @@ func (o *Org) GenerateNewAttr(names []string, apks []*pbc.Element, attr string, 
 		return fmt.Errorf("already has this attr")
 	}
 
-	gY := d.CurveParam.Get0FromGT().Set1()
+	gY := d.CurveParam.Get1FromGT()
 	for i := 0 ; i< o.T ;i++ {
-		up := d.CurveParam.Get0FromZn().Set1()
+		up := d.CurveParam.Get1FromZn()
 		for j := 0; j < o.T; j++ {
 			if i == j {
 				continue

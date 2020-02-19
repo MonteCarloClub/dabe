@@ -185,7 +185,7 @@ type Keygen struct {
 }
 
 func (maff *MAFF) KeyGen(args *Keygen, reply *[]byte) error {
-	fmt.Println("KeyGen:")
+	fmt.Println("KeyGenByUser:")
 	fmt.Println(args.Aid)
 	*reply = this.SKGEN_USER(args.PartSk, args.Aid)
 	return nil
