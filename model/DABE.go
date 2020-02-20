@@ -47,10 +47,10 @@ func (d *DABE) OrgSetup(n, t int, name string, userNames []string) (*Org, error)
 	}
 	fmt.Printf("DABE OrgSetup success for %s\n", name)
 	return &Org{
-		Name:      name,
-		N:         n,
-		T:         t,
-		UserNames: User2Hash,
+		Name:         name,
+		N:            n,
+		T:            t,
+		UserName2GID: User2Hash,
 	}, nil
 }
 

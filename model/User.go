@@ -14,7 +14,6 @@ type User struct {
 	Name     string
 	OPKMap   map[string]*OPKPart
 	OSKMap   map[string]*OSKPart
-	KeyMap   map[string]*pbc.Element
 }
 
 func (u *User) GetPK() *pbc.Element {
@@ -123,18 +122,18 @@ func (u *User) GenerateOrgAttrShare(n, t int, org *Org, d *DABE, attrName string
 	u.OSKMap[org.Name].ASKPartMap[attrName] = askPart
 
 	shares := make(map[string]*pbc.Element)
-	for name, hGID := range org.UserNames {
+	for name, hGID := range org.UserName2GID {
 		shares[name] = u.share(hGID, d, n, t, f)
 	}
 	return shares, nil
 }
 
-//组装组织属性
-func (u *User) AssembleOrgAttr(names []string, name2attr map[string]*pbc.Element,
-	name2gid map[string]*pbc.Element, d *DABE, t int, attr string) error {
+//组装其他用户的share
+func (u *User) AssembleShare(names []string, name2share map[string]*pbc.Element,
+	name2gid map[string]*pbc.Element, d *DABE, t int) (*pbc.Element, error) {
 
-	if len(name2attr) != t || len(name2gid) != t {
-		return fmt.Errorf("length not enough")
+	if len(name2share) != t || len(name2gid) != t {
+		return nil, fmt.Errorf("length not enough")
 	}
 	key := d.CurveParam.Get1FromG1()
 
@@ -148,10 +147,9 @@ func (u *User) AssembleOrgAttr(names []string, name2attr map[string]*pbc.Element
 			di = d.CurveParam.GetNewZn().Div(name2gid[names[j]], di)
 			up.ThenMul(di)
 		}
-		key.ThenMul(d.CurveParam.Get0FromGT().PowZn(name2attr[names[i]], up))
+		key.ThenMul(d.CurveParam.Get0FromGT().PowZn(name2share[names[i]], up))
 	}
-	u.KeyMap[attr] = key
-	return nil
+	return key, nil
 }
 
 //get sij
