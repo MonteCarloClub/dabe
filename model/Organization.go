@@ -35,9 +35,9 @@ func (o *Org) GenerateOPK(names []string, pks []*pbc.Element, d *DABE) error {
 			if i == j {
 				continue
 			}
-			di := d.CurveParam.Get0FromZn().Sub(o.UserName2GID[names[j]], o.UserName2GID[names[i]])
-			di = d.CurveParam.GetNewZn().Div(o.UserName2GID[names[j]], di)
-			up.ThenMul(di)
+			temp := d.CurveParam.Get0FromZn().Sub(o.UserName2GID[names[j]], o.UserName2GID[names[i]])
+			temp = d.CurveParam.GetNewZn().Div(o.UserName2GID[names[j]], temp)
+			up.ThenMul(temp)
 		}
 		eGGAlpha.ThenMul(d.CurveParam.Get0FromGT().PowZn(pks[i], up))
 	}
@@ -65,7 +65,7 @@ func (o *Org) GenerateNewAttr(names []string, apks []*pbc.Element, attr string, 
 			di = d.CurveParam.GetNewZn().Div(o.UserName2GID[names[j]], di)
 			up.ThenMul(di)
 		}
-		gY.ThenMul(d.CurveParam.Get0FromGT().PowZn(apks[i], up))
+		gY.ThenMul(d.CurveParam.Get0FromG1().PowZn(apks[i], up))
 	}
 	o.APKMap[attr] = &APK{
 		Gy: gY,
@@ -90,7 +90,7 @@ func (o *Org) AssembleKeyPart(names []string, keyParts []*pbc.Element, d *DABE) 
 			di = d.CurveParam.GetNewZn().Div(o.UserName2GID[names[j]], di)
 			up.ThenMul(di)
 		}
-		key.ThenMul(d.CurveParam.Get0FromGT().PowZn(keyParts[i], up))
+		key.ThenMul(d.CurveParam.Get0FromG1().PowZn(keyParts[i], up))
 	}
 	return key, nil
 }

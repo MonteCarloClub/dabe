@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 func TestDemo(t *testing.T) {
 	//初始化和全局参数生成
 	dabe := new(DABE)
@@ -22,17 +21,17 @@ func TestDemo(t *testing.T) {
 	//保存所有属性公钥
 	pkMap := make(map[string]*APK)
 	//生成属性私钥
-	tempPk, err := fudanUniversity.GenerateNewAttr("在读研究生", dabe)
+	tempPk, err := fudanUniversity.GenerateNewAttr("Fudan_University:在读研究生", dabe)
 	if err != nil {
 		panic(err)
 	}
 	pkMap["Fudan_University:在读研究生"] = tempPk
-	tempPk2, err := ageAuthority.GenerateNewAttr("23", dabe)
+	tempPk2, err := ageAuthority.GenerateNewAttr("Age_Authority:23", dabe)
 	if err != nil {
 		panic(err)
 	}
 	pkMap["Age_Authority:23"] = tempPk2
-	tempPk3, err := ageAuthority.GenerateNewAttr("24", dabe)
+	tempPk3, err := ageAuthority.GenerateNewAttr("Age_Authority:24", dabe)
 	if err != nil {
 		panic(err)
 	}
@@ -42,15 +41,15 @@ func TestDemo(t *testing.T) {
 	user1Privatekeys := make(map[string]*pbc.Element)
 	user2Privatekeys := make(map[string]*pbc.Element)
 
-	user1Privatekey1, err := fudanUniversity.KeyGenByUser("陈泽宁", "在读研究生", dabe)
+	user1Privatekey1, err := fudanUniversity.KeyGenByUser("陈泽宁", "Fudan_University:在读研究生", dabe)
 	if err != nil {
 		panic(err)
 	}
-	user1Privatekey2, err := ageAuthority.KeyGenByUser("陈泽宁", "23", dabe)
+	user1Privatekey2, err := ageAuthority.KeyGenByUser("陈泽宁", "Age_Authority:23", dabe)
 	if err != nil {
 		panic(err)
 	}
-	user2Privatekey1, err := ageAuthority.KeyGenByUser("24岁的无名氏", "24", dabe)
+	user2Privatekey1, err := ageAuthority.KeyGenByUser("24岁的无名氏", "Age_Authority:24", dabe)
 	if err != nil {
 		panic(err)
 	}
@@ -143,7 +142,7 @@ func TestDemo2(t *testing.T) {
 	sharesForUser2[user2Name] = user2Shares[user2Name]
 	sharesForUser2[user3Name] = user3Shares[user2Name]
 	sharesForUser2[user4Name] = user4Shares[user2Name]
-	user2PK, err := user2.AssembleShare(userNames, sharesForUser2, org1.UserName2GID, dabe, 2)
+	user2PK, err := user2.AssembleShare(userNames, sharesForUser2, dabe, 3, 0, org1Name, "")
 	if err != nil {
 		panic(err)
 	}
@@ -151,7 +150,7 @@ func TestDemo2(t *testing.T) {
 	sharesForUser3[user2Name] = user2Shares[user3Name]
 	sharesForUser3[user3Name] = user3Shares[user3Name]
 	sharesForUser3[user4Name] = user4Shares[user3Name]
-	user3PK, err := user2.AssembleShare(userNames, sharesForUser3, org1.UserName2GID, dabe, 2)
+	user3PK, err := user3.AssembleShare(userNames, sharesForUser3, dabe, 3, 0, org1Name, "")
 	if err != nil {
 		panic(err)
 	}
@@ -159,18 +158,17 @@ func TestDemo2(t *testing.T) {
 	sharesForUser4[user2Name] = user2Shares[user4Name]
 	sharesForUser4[user3Name] = user3Shares[user4Name]
 	sharesForUser4[user4Name] = user4Shares[user4Name]
-	user4PK, err := user2.AssembleShare(userNames, sharesForUser4, org1.UserName2GID, dabe, 2)
+	user4PK, err := user4.AssembleShare(userNames, sharesForUser4, dabe, 3, 0, org1Name, "")
 	if err != nil {
 		panic(err)
 	}
 	pks := []*pbc.Element{user2PK, user3PK, user4PK}
-	err = org1.GenerateOPK(userNames, pks, dabe)
+	err = org1.GenerateOPK(userNames[:2], pks[:2], dabe)
 	if err != nil {
 		panic(err)
 	}
 
 	authorityMap["org1"] = org1
-
 
 	//保存所有属性公钥
 	pkMap := make(map[string]*APK)
@@ -209,7 +207,7 @@ func TestDemo2(t *testing.T) {
 	sharesForUser2_[user2Name] = user2Shares_[user2Name]
 	sharesForUser2_[user3Name] = user3Shares_[user2Name]
 	sharesForUser2_[user4Name] = user4Shares_[user2Name]
-	user2PK_, err := user2.AssembleShare(userNames, sharesForUser2_, org1.UserName2GID, dabe, 2)
+	user2PK_, err := user2.AssembleShare(userNames, sharesForUser2_, dabe, 3, 1, org1Name, org1Attr1)
 	if err != nil {
 		panic(err)
 	}
@@ -217,7 +215,7 @@ func TestDemo2(t *testing.T) {
 	sharesForUser3_[user2Name] = user2Shares_[user3Name]
 	sharesForUser3_[user3Name] = user3Shares_[user3Name]
 	sharesForUser3_[user4Name] = user4Shares_[user3Name]
-	user3PK_, err := user2.AssembleShare(userNames, sharesForUser3_, org1.UserName2GID, dabe, 2)
+	user3PK_, err := user3.AssembleShare(userNames, sharesForUser3_, dabe, 3, 1, org1Name, org1Attr1)
 	if err != nil {
 		panic(err)
 	}
@@ -225,17 +223,16 @@ func TestDemo2(t *testing.T) {
 	sharesForUser4_[user2Name] = user2Shares_[user4Name]
 	sharesForUser4_[user3Name] = user3Shares_[user4Name]
 	sharesForUser4_[user4Name] = user4Shares_[user4Name]
-	user4PK_, err := user2.AssembleShare(userNames, sharesForUser4_, org1.UserName2GID, dabe, 2)
+	user4PK_, err := user4.AssembleShare(userNames, sharesForUser4_, dabe, 3, 1, org1Name, org1Attr1)
 	if err != nil {
 		panic(err)
 	}
 	apks := []*pbc.Element{user2PK_, user3PK_, user4PK_}
-	err = org1.GenerateNewAttr(userNames, apks, org1Attr1, dabe)
+	err = org1.GenerateNewAttr(userNames[1:3], apks[1:3], org1Attr1, dabe)
 	if err != nil {
 		panic(err)
 	}
 	pkMap[org1Attr1] = org1.APKMap[org1Attr1]
-
 
 	//用户申请密钥
 	goodManPrivatekeys := make(map[string]*pbc.Element)
@@ -269,9 +266,9 @@ func TestDemo2(t *testing.T) {
 		panic(err)
 	}
 	goodManPrivatekey2, err := org1.AssembleKeyPart([]string{user2Name, user3Name},
-	[]*pbc.Element{partKey1, partKey2}, dabe)
+		[]*pbc.Element{partKey1, partKey2}, dabe)
 	badManPrivatekey2, err := org1.AssembleKeyPart([]string{user3Name, user4Name},
-	[]*pbc.Element{partKey3, partKey4}, dabe)
+		[]*pbc.Element{partKey3, partKey4}, dabe)
 	goodManPrivatekeys[org1Attr1] = goodManPrivatekey2
 	badManPrivatekeys[org1Attr1] = badManPrivatekey2
 

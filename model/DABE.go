@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/Nik-U/pbc"
 	"github.com/thorweiyan/DecentralizedABE2020/model/AES"
-	"strings"
 )
 
 type DABE struct {
@@ -27,8 +26,18 @@ func (d *DABE) UserSetup(name string) *User {
 	fmt.Println("DABE UserSetup start")
 	alpha := d.CurveParam.GetNewZn()
 	eGGAlpha := d.EGG.NewFieldElement().PowZn(d.EGG, alpha)
+	gAlpha := d.G.NewFieldElement().PowZn(d.G, alpha)
 	fmt.Printf("DABE UserSetup success for %s\n", name)
-	return &User{make(map[string]*APK), make(map[string]*ASK), eGGAlpha, alpha, name}
+	return &User{
+		APKMap:   make(map[string]*APK),
+		ASKMap:   make(map[string]*ASK),
+		EGGAlpha: eGGAlpha,
+		Alpha:    alpha,
+		GAlpha:   gAlpha,
+		Name:     name,
+		OPKMap:   make(map[string]*OPKPart),
+		OSKMap:   make(map[string]*OSKPart),
+	}
 }
 
 func (d *DABE) OrgSetup(n, t int, name string, userNames []string) (*Org, error) {
@@ -40,17 +49,19 @@ func (d *DABE) OrgSetup(n, t int, name string, userNames []string) (*Org, error)
 		return nil, fmt.Errorf("userNames' length doesn't eq n")
 	}
 	hash := sha256.New()
-	User2Hash := make(map[string]*pbc.Element)
+	user2gid := make(map[string]*pbc.Element)
 	for _, userName := range userNames {
 		hashId := d.CurveParam.GetZnFromStringHash(userName, hash)
-		User2Hash[userName] = hashId
+		user2gid[userName] = hashId
 	}
 	fmt.Printf("DABE OrgSetup success for %s\n", name)
 	return &Org{
+		APKMap:       make(map[string]*APK),
+		EGGAlpha:     nil,
 		Name:         name,
 		N:            n,
 		T:            t,
-		UserName2GID: User2Hash,
+		UserName2GID: user2gid,
 	}, nil
 }
 
@@ -133,8 +144,7 @@ func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]Authorit
 
 func (d *DABE) Decrypt(cipher *Cipher, privateKeys map[string]*pbc.Element, gid string) ([]byte, error) {
 	fmt.Println("DABE Decrypt start")
-	temp := sha256.Sum256([]byte(gid))
-	hashGid := d.G.NewFieldElement().SetBytes(temp[:])
+	hashGid := d.CurveParam.GetG1FromStringHash(gid, sha256.New())
 
 	policy := new(Policy)
 	d.growNewPolicy(cipher.Policy, d.CurveParam.GetNewZn(), policy)

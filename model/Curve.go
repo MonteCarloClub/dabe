@@ -51,6 +51,11 @@ func (this *CurveParam) GetNewZn() *pbc.Element {
 	return g
 }
 
+func (this *CurveParam) GetG1FromStringHash(s string, hash hash.Hash) *pbc.Element {
+	g := this.Pairing.NewUncheckedElement(0).SetFromStringHash(s, hash)
+	return g
+}
+
 func (this *CurveParam) GetZnFromStringHash(s string, hash hash.Hash) *pbc.Element {
 	g := this.Pairing.NewUncheckedElement(3).SetFromStringHash(s, hash)
 	return g

@@ -30,20 +30,22 @@ func (s *ASK) getY() *pbc.Element {
 }
 
 type OPKPart struct {
-	EGGAlphaPart *pbc.Element            //part of org's EGGAlpha
-	GyPart       map[string]*pbc.Element //part of org attrs' gy
+	OPK    *pbc.Element            //part of org's EGGAlpha
+	APKMap map[string]*pbc.Element //part of org attrs' gy
 }
 type OSKPart struct {
 	AlphaPart   *pbc.Element        //part of org's Alpha
-	ASKPartMap  map[string]*ASKPart //part of org attrs' y
+	ASKMap      map[string]*ASKPart //part of org attrs' y
 	F           []*pbc.Element      //for shamir's share
 	N           int
 	T           int
 	OthersShare []*pbc.Element //for some special time
-	GAlphaPart  *pbc.Element   //for easy use
+	OSK         *pbc.Element   //mul shares
+	GOSK        *pbc.Element
 }
 type ASKPart struct {
 	F           []*pbc.Element //for shamir's share
 	OthersShare []*pbc.Element //for some special time
 	YPart       *pbc.Element
+	ASK         *pbc.Element //mul shares
 }
