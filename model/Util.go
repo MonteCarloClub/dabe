@@ -1,13 +1,13 @@
 package DecentralizedABE
 
 import (
-	"strings"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 /* <Policy Parser SECTION */
-func ParsePolicyStringtoTree(s *string) (*PolicyNode,*AccessStruct){
+func ParsePolicyStringtoTree(s *string) (*PolicyNode, *AccessStruct) {
 	ss := *s
 	AS := NewAccessStruct()
 	AS.ParsePolicyStringtoMap(&ss)
@@ -15,22 +15,22 @@ func ParsePolicyStringtoTree(s *string) (*PolicyNode,*AccessStruct){
 	*s = strings.Replace(*s, "AND", "&&", -1)
 	*s = strings.Replace(*s, "OR", "||", -1)
 	*s = strings.Replace(*s, " ", "", -1)
-	MainPolicy,ID := ParsePolicyString(AS ,s,0, len(*s)-1)
-	if ID==0{} //non sense
-	return MainPolicy,AS
+	MainPolicy, ID := ParsePolicyString(AS, s, 0, len(*s)-1)
+	if ID == 0 {
+	} //non sense
+	return MainPolicy, AS
 }
 
-
-func ParsePolicyString(A *AccessStruct,s *string, startPos int, stopPos int)(*PolicyNode,int){
+func ParsePolicyString(A *AccessStruct, s *string, startPos int, stopPos int) (*PolicyNode, int) {
 	//leftPos := startPos+1+strings.Index((*s)[startPos+1:stopPos], "(")
 
-	this := NewPolicyNode("ThreshHold",0)
+	this := NewPolicyNode("ThreshHold", 0)
 
-	A.A = append(A.A,make([]int,2,2))
+	A.A = append(A.A, make([]int, 2, 2))
 	//_A := &(A.A[A.CurrentPointer])
 	ID := A.CurrentPointer
-	A.A[ID][0]=0
-	A.A[ID][1]=0
+	A.A[ID][0] = 0
+	A.A[ID][1] = 0
 	A.CurrentPointer++
 	policy_children := make([]*PolicyNode, 0)
 
@@ -41,46 +41,45 @@ func ParsePolicyString(A *AccessStruct,s *string, startPos int, stopPos int)(*Po
 	var rightPos int
 	var trueChild string = ""
 
-
-	for ; i<=stopPos ;  {
+	for i <= stopPos {
 
 		leftPos = strings.Index((*s)[i:stopPos], "(")
 
-		if leftPos!=-1 {
-			trueChild += (*s)[i:i+leftPos]
+		if leftPos != -1 {
+			trueChild += (*s)[i : i+leftPos]
 			rightPos = LookForMyRightBraket(s, i+leftPos)
-			tmpPolicy,tmpID := ParsePolicyString(A, s, i+leftPos, rightPos)
+			tmpPolicy, tmpID := ParsePolicyString(A, s, i+leftPos, rightPos)
 			policy_children = append(policy_children, tmpPolicy)
-			A.A[ID] = append(A.A[ID],tmpID )
+			A.A[ID] = append(A.A[ID], tmpID)
 			n++
 			i = rightPos + 1
-		}else{
+		} else {
 			trueChild += (*s)[i:stopPos]
 			break
 		}
 	}
 
 	var childAttr []string
-	if strings.Index(trueChild,"&&")!=-1 {
+	if strings.Index(trueChild, "&&") != -1 {
 		childAttr = strings.Split(trueChild, "&&")
 
 		for v := range childAttr {
-			if childAttr[v]!="" {
-				policy_children = append(policy_children, NewPolicyNode(childAttr[v],1).SetMax(1).SetMin(1))
-				A.A[ID] = append(A.A[ID],-A.PolicyMap[childAttr[v]] )
+			if childAttr[v] != "" {
+				policy_children = append(policy_children, NewPolicyNode(childAttr[v], 1).SetMax(1).SetMin(1))
+				A.A[ID] = append(A.A[ID], -A.PolicyMap[childAttr[v]])
 				A.LeafID--
 				n++
 			}
 		}
 		_n = n
 		this.SetOperation(1)
-	}else if(strings.Index(trueChild,"||")!=-1){
+	} else if strings.Index(trueChild, "||") != -1 {
 		childAttr = strings.Split(trueChild, "||")
 
 		for v := range childAttr {
-			if childAttr[v]!="" {
-				policy_children = append(policy_children, NewPolicyNode(childAttr[v],1).SetMax(1).SetMin(1))
-				A.A[ID] = append(A.A[ID],-A.PolicyMap[childAttr[v]])
+			if childAttr[v] != "" {
+				policy_children = append(policy_children, NewPolicyNode(childAttr[v], 1).SetMax(1).SetMin(1))
+				A.A[ID] = append(A.A[ID], -A.PolicyMap[childAttr[v]])
 				A.LeafID--
 				n++
 			}
@@ -89,37 +88,38 @@ func ParsePolicyString(A *AccessStruct,s *string, startPos int, stopPos int)(*Po
 		this.SetOperation(2)
 	}
 
-	if n==0 {
+	if n == 0 {
 		fmt.Printf("Error:: bad description. \n")
-	}else{
+	} else {
 		this.SetChildren(policy_children)
 		this.SetMax(n)
 		this.SetMin(_n)
-		A.A[ID][0]=n
-		A.A[ID][1]=_n
+		A.A[ID][0] = n
+		A.A[ID][1] = _n
 	}
 
-	return this,ID
+	return this, ID
 }
 
-func LookForMyRightBraket(s *string,posL int) int {
+func LookForMyRightBraket(s *string, posL int) int {
 	rightPos := posL + strings.Index((*s)[posL:], ")")
 
-	for ; true ;  {
-		if rightPos<posL {
+	for true {
+		if rightPos < posL {
 			return -1
-		}else{
+		} else {
 			leftPos := posL + 1 + strings.Index((*s)[posL+1:rightPos], "(")
-			if leftPos>posL + 1 {
+			if leftPos > posL+1 {
 				posL = LookForMyRightBraket(s, leftPos)
 				rightPos = posL + 1 + strings.Index((*s)[posL+1:], ")")
-			}else{
+			} else {
 				return rightPos
 			}
 		}
 	}
 	return 0
 }
+
 /* Policy Parser SECTION> */
 
 /* <Utility SECTION */
@@ -129,9 +129,10 @@ func checkError(e error) {
 		panic(e)
 	}
 }
+
 /* Utility SECTION> */
 
-/* util */
+/* utils */
 func CharToString(s string, t int) string {
 	var sp string = ""
 	for i := 0; i < t; i++ {
@@ -152,7 +153,7 @@ func GetPadding(m int, l int, depth int) string {
 }
 
 // 检查属性是否以组织/用户名称为前缀
-func CheckAttrName(attrName, authorityName string) bool{
+func CheckAttrName(attrName, authorityName string) bool {
 	splitN := strings.SplitN(attrName, ":", 2)
 	if len(splitN) != 2 {
 		return false
@@ -161,7 +162,7 @@ func CheckAttrName(attrName, authorityName string) bool{
 }
 
 // 根据属性名称获取组织/用户名，出错返回空字符串
-func GetAuthorityNameFromAttrName(attrName string) string{
+func GetAuthorityNameFromAttrName(attrName string) string {
 	splitN := strings.SplitN(attrName, ":", 2)
 	if len(splitN) != 2 {
 		return ""
