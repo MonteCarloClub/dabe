@@ -7,7 +7,7 @@ import (
 )
 
 /* <Policy Parser SECTION */
-func ParsePolicyStringtoTree(s *string) (*PolicyNode, *AccessStruct) {
+func ParsePolicyStringToTree(s *string) (*PolicyNode, *AccessStruct) {
 	ss := *s
 	AS := NewAccessStruct()
 	AS.ParsePolicyStringtoMap(&ss)

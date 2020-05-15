@@ -6,7 +6,7 @@ import (
 
 /* Public Key Structure */
 type APK struct {
-	Gy *pbc.Element //G^y, y from Zp
+	Gy *pbc.Element `field:"0"` //G^y, y from Zp
 }
 
 func (p *APK) Initialize(gy *pbc.Element) {
@@ -18,7 +18,7 @@ func (p *APK) getGy() *pbc.Element {
 }
 
 type ASK struct {
-	Y *pbc.Element
+	Y *pbc.Element `field:"3"`
 }
 
 func (s *ASK) Initialize(y *pbc.Element) {
@@ -30,22 +30,22 @@ func (s *ASK) getY() *pbc.Element {
 }
 
 type OPKPart struct {
-	OPK    *pbc.Element            //part of org's EGGAlpha
-	APKMap map[string]*pbc.Element //part of org attrs' gy
+	OPK    *pbc.Element            `field:"2"` //part of org's EGGAlpha
+	APKMap map[string]*pbc.Element `field:"0"` //part of org attrs' gy
 }
 type OSKPart struct {
-	AlphaPart   *pbc.Element        //part of org's Alpha
-	ASKMap      map[string]*ASKPart //part of org attrs' y
-	F           []*pbc.Element      //for shamir's share
+	AlphaPart   *pbc.Element `field:"3"`   //part of org's Alpha
+	ASKMap      map[string]*ASKPart        //part of org attrs' y
+	F           []*pbc.Element `field:"3"` //for shamir's share
 	N           int
 	T           int
-	OthersShare []*pbc.Element //for some special time
-	OSK         *pbc.Element   //mul shares
-	GOSK        *pbc.Element
+	OthersShare []*pbc.Element `field:"3"` //for some special time
+	OSK         *pbc.Element   `field:"3"` //mul shares
+	GOSK        *pbc.Element   `field:"0"`
 }
 type ASKPart struct {
-	F           []*pbc.Element //for shamir's share
-	OthersShare []*pbc.Element //for some special time
-	YPart       *pbc.Element
-	ASK         *pbc.Element //mul shares
+	F           []*pbc.Element `field:"3"` //for shamir's share
+	OthersShare []*pbc.Element `field:"3"` //for some special time
+	YPart       *pbc.Element   `field:"3"`
+	ASK         *pbc.Element   `field:"3"` //mul shares
 }

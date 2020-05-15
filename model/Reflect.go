@@ -31,7 +31,7 @@ func init() {
 	helper.Setup()
 }
 
-func Struct2Map(obj interface{}) map[string]interface{} {
+func (d *Helper) Struct2Map(obj interface{}) map[string]interface{} {
 	t := reflect.TypeOf(obj).Elem()
 	v := reflect.ValueOf(obj).Elem()
 
@@ -161,7 +161,7 @@ func Struct2Map(obj interface{}) map[string]interface{} {
 	return data
 }
 
-func Str2Struct(str []byte, obj interface{}) {
+func (d *Helper) Str2Struct(str []byte, obj interface{}) {
 	var data = make(map[string]interface{})
 	err := json.Unmarshal(str, &data)
 	if err != nil {

@@ -7,11 +7,11 @@ import (
 
 type Org struct {
 	APKMap       map[string]*APK
-	EGGAlpha     *pbc.Element
+	EGGAlpha     *pbc.Element `field:"2"`
 	Name         string
-	N            int                     //总用户个数
-	T            int                     //门限阈值
-	UserName2GID map[string]*pbc.Element //用户的名称
+	N            int                                 //总用户个数
+	T            int                                 //门限阈值
+	UserName2GID map[string]*pbc.Element `field:"3"` //用户的名称
 }
 
 func (o *Org) GetPK() *pbc.Element {
