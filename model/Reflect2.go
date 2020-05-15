@@ -69,7 +69,7 @@ func Serialize2Map(obj interface{}) (map[string]interface{}, error) {
 			tempData := make(map[string]interface{}, len(value.MapKeys()))
 			for _, key := range value.MapKeys() {
 				innerVal := value.MapIndex(key)
-				tempData[key.Interface().(string)], err = Serialize2Map(innerVal)
+				tempData[key.Interface().(string)], err = Serialize2Map(innerVal.Interface())
 				if err != nil {
 					return nil, err
 				}
@@ -96,8 +96,7 @@ func Deserialize2Struct(bytes []byte, obj interface{}) error {
 		fmt.Println(err.Error())
 		return err
 	}
-	i, e := deserialize2Struct(data, obj)
-	fmt.Println(i)
+	obj, e := deserialize2Struct(data, obj)
 	return e
 }
 
@@ -148,6 +147,7 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 		case reflect.Map:
 			innerType := field.Type.Elem()
 			tempMap := data[field.Name].(map[string]interface{})
+			tempData := reflect.MakeMap(field.Type)
 			//tempData := make(map[string]interface{}, len(tempMap))
 			if _, exist := specialHandle[innerType.String()]; exist {
 				for k, v := range tempMap {
@@ -155,20 +155,23 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 					if err != nil {
 						return nil, err
 					}
-					value.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(result))
+					tempData.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(result))
 					//tempData[k] = result
 				}
 			} else {
 				for k, v := range tempMap {
-					result, err := deserialize2Struct(v.(map[string]interface{}), reflect.New(innerType))
+					if innerType.Kind() == reflect.Ptr {
+						innerType = innerType.Elem()
+					}
+					result, err := deserialize2Struct(v.(map[string]interface{}), reflect.New(innerType).Interface())
 					if err != nil {
 						return nil, err
 					}
-					value.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(result))
+					tempData.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(result))
 					//tempData[k] = result
 				}
 			}
-			//value.Set(reflect.ValueOf(tempData))
+			value.Set(tempData)
 			continue
 		case reflect.Struct:
 			result, err := deserialize2Struct(data[field.Name].(map[string]interface{}), reflect.New(field.Type))

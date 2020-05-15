@@ -30,11 +30,12 @@ func TestReflect2(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(bytes)
+	//fmt.Println(bytes)
 	user := new(User)
 	err = Deserialize2Struct(bytes, user)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
+	fmt.Printf("%v\n", user)
 }
