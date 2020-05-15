@@ -4,21 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Nik-U/pbc"
-	"github.com/fatih/set"
 	"math/big"
 	"reflect"
 	"strconv"
 )
 
-var specialHandle set.Interface
+var specialHandle map[string]struct{}
 var curve CurveParam
 
 func init() {
-	specialHandle = set.New(set.NonThreadSafe)
-	specialHandle.Add("*pbc.Params")
-	specialHandle.Add("*pbc.Pairing")
-	specialHandle.Add("*pbc.Element")
-	specialHandle.Add("*big.Int")
+	specialHandle = make(map[string]struct{})
+	specialHandle["*pbc.Params"] = struct{}{}
+	specialHandle["*pbc.Pairing"] = struct{}{}
+	specialHandle["*pbc.Element"] = struct{}{}
+	specialHandle["*big.Int"] = struct{}{}
 	curve.Initialize()
 }
 
@@ -50,7 +49,7 @@ func Serialize2Map(obj interface{}) (map[string]interface{}, error) {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		value := v.Field(i)
-		if specialHandle.Has(field.Type.String()) {
+		if _, exist := specialHandle[field.Type.String()]; exist {
 			data[field.Name] = serializeHandle(field.Type, value)
 			continue
 		}
@@ -113,12 +112,13 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		value := v.Field(i)
-		if specialHandle.Has(field.Type.String()) {
+		if _, exist := specialHandle[field.Type.String()]; exist {
 			result, err := deserializeHandle(field.Type, data[field.Name], field.Tag)
 			if err != nil {
 				return nil, err
 			}
 			value.Set(reflect.ValueOf(result))
+			continue
 		}
 
 		switch field.Type.Kind() {
@@ -126,7 +126,7 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 			innerType := field.Type.Elem()
 			tempArray := data[field.Name].([]interface{})
 			tempData := make([]interface{}, len(tempArray))
-			if specialHandle.Has(innerType.String()) {
+			if _, exist := specialHandle[innerType.String()]; exist {
 				for i, v := range tempArray {
 					result, err := deserializeHandle(innerType, v, field.Tag)
 					if err != nil {
@@ -149,7 +149,7 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 			innerType := field.Type.Elem()
 			tempMap := data[field.Name].(map[string]interface{})
 			//tempData := make(map[string]interface{}, len(tempMap))
-			if specialHandle.Has(innerType.String()) {
+			if _, exist := specialHandle[innerType.String()]; exist {
 				for k, v := range tempMap {
 					result, err := deserializeHandle(innerType, v, field.Tag)
 					if err != nil {
@@ -204,9 +204,6 @@ func serializeHandle(fieldType reflect.Type, val reflect.Value) interface{} {
 }
 
 func deserializeHandle(fieldType reflect.Type, obj interface{}, tag reflect.StructTag) (interface{}, error) {
-	if fieldType.Kind() == reflect.Struct {
-		return deserialize2Struct(obj.(map[string]interface{}), reflect.New(fieldType))
-	}
 	switch fieldType.String() {
 	case "*pbc.Params":
 		return curve.Param, nil
@@ -233,6 +230,9 @@ func deserializeHandle(fieldType reflect.Type, obj interface{}, tag reflect.Stru
 		}
 		return result, nil
 	default:
+		if fieldType.Kind() == reflect.Struct {
+			return deserialize2Struct(obj.(map[string]interface{}), reflect.New(fieldType))
+		}
 		return obj, nil
 	}
 }
