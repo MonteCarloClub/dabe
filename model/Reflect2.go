@@ -18,6 +18,7 @@ func init() {
 	specialHandle["*pbc.Pairing"] = struct{}{}
 	specialHandle["*pbc.Element"] = struct{}{}
 	specialHandle["*big.Int"] = struct{}{}
+	specialHandle["int"] = struct{}{}
 	curve.Initialize()
 }
 
@@ -40,11 +41,12 @@ func Serialize2Map(obj interface{}) (map[string]interface{}, error) {
 	}
 	t := reflect.TypeOf(obj)
 	v := reflect.ValueOf(obj)
+
+	data := make(map[string]interface{})
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 		v = v.Elem()
 	}
-	data := make(map[string]interface{})
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -54,13 +56,19 @@ func Serialize2Map(obj interface{}) (map[string]interface{}, error) {
 			continue
 		}
 		switch field.Type.Kind() {
-		case reflect.Array:
-			tempArray := value.Interface().([]interface{})
-			tempData := make([]interface{}, len(tempArray))
-			for i, v := range tempArray {
-				tempData[i], err = Serialize2Map(v)
-				if err != nil {
-					return nil, err
+		case reflect.Slice:
+			nestedName := field.Type.Elem().String()
+			tempData := make([]interface{}, value.Len())
+			if _, exist := specialHandle[nestedName]; !exist {
+				for i := 0; i < value.Len(); i++ {
+					tempData[i], err = Serialize2Map(value.Index(i).Interface())
+					if err != nil {
+						return nil, err
+					}
+				}
+			} else {
+				for i := 0; i < value.Len(); i++ {
+					tempData[i] = serializeHandle(field.Type.Elem(), value.Index(i))
 				}
 			}
 			data[field.Name] = tempData
@@ -121,17 +129,17 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 		}
 
 		switch field.Type.Kind() {
-		case reflect.Array:
+		case reflect.Slice:
 			innerType := field.Type.Elem()
 			tempArray := data[field.Name].([]interface{})
-			tempData := make([]interface{}, len(tempArray))
+			tempData := reflect.MakeSlice(field.Type, len(tempArray), len(tempArray))
 			if _, exist := specialHandle[innerType.String()]; exist {
 				for i, v := range tempArray {
 					result, err := deserializeHandle(innerType, v, field.Tag)
 					if err != nil {
 						return nil, err
 					}
-					tempData[i] = result
+					tempData.Index(i).Set(reflect.ValueOf(result))
 				}
 			} else {
 				if innerType.Kind() == reflect.Ptr {
@@ -142,10 +150,10 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 					if err != nil {
 						return nil, err
 					}
-					tempData[i] = result
+					tempData.Index(i).Set(reflect.ValueOf(result))
 				}
 			}
-			value.Set(reflect.ValueOf(tempData))
+			value.Set(tempData)
 			continue
 		case reflect.Map:
 			innerType := field.Type.Elem()
@@ -229,6 +237,8 @@ func deserializeHandle(fieldType reflect.Type, obj interface{}, tag reflect.Stru
 			return nil, fmt.Errorf("deserialze big.Int error with" + obj.(string))
 		}
 		return result, nil
+	case "int":
+		return int(obj.(float64)), nil
 	default:
 		if fieldType.Kind() == reflect.Struct {
 			return deserialize2Struct(obj.(map[string]interface{}), reflect.New(fieldType))

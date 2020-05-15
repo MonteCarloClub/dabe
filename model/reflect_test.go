@@ -88,7 +88,7 @@ func TestReflect2(t *testing.T) {
 		panic(err)
 	}
 	_, _ = user2.GenerateNewAttr("123456", dabe)
-	fmt.Printf("%v\n", user2)
+
 	bytes, err := Serialize2Bytes(user2)
 	if err != nil {
 		panic(err)
@@ -100,5 +100,9 @@ func TestReflect2(t *testing.T) {
 		fmt.Println(err)
 		panic(err)
 	}
+	fmt.Printf("%v\n", user2)
 	fmt.Printf("%v\n", user)
+	for k, v := range user2.OSKMap {
+		fmt.Printf("%v\n%v\n", v, user.OSKMap[k])
+	}
 }
