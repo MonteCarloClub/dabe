@@ -134,8 +134,11 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 					tempData[i] = result
 				}
 			} else {
+				if innerType.Kind() == reflect.Ptr {
+					innerType = innerType.Elem()
+				}
 				for i, v := range tempArray {
-					result, err := deserialize2Struct(v.(map[string]interface{}), reflect.New(innerType))
+					result, err := deserialize2Struct(v.(map[string]interface{}), reflect.New(innerType).Interface())
 					if err != nil {
 						return nil, err
 					}
