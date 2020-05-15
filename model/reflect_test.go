@@ -24,6 +24,7 @@ func TestReflect2(t *testing.T) {
 	dabe := new(DABE)
 	dabe.GlobalSetup()
 	fudanUniversity := dabe.UserSetup("Fudan_University")
+	fudanUniversity.GenerateNewAttr("Fudan_University:在读研究生", dabe)
 	fmt.Printf("%v\n", fudanUniversity)
 	bytes, err := Serialize2Bytes(fudanUniversity)
 	if err != nil {

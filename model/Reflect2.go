@@ -178,9 +178,6 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 			value.Set(reflect.ValueOf(result))
 			continue
 		default:
-			fmt.Println(field.Type.Kind())
-			fmt.Println(field.Type.Name())
-			fmt.Println(field.Type.String())
 			value.Set(reflect.ValueOf(data[field.Name]))
 		}
 	}
@@ -211,9 +208,6 @@ func deserializeHandle(fieldType reflect.Type, obj interface{}, tag reflect.Stru
 		return curve.Pairing, nil
 	case "*pbc.Element":
 		fieldStr := tag.Get("field")
-		fmt.Println(fieldType.Kind())
-		fmt.Println(fieldType.Name())
-		fmt.Println(fieldStr)
 		i, err := strconv.Atoi(fieldStr)
 		if err != nil {
 			return nil, err
