@@ -158,27 +158,27 @@ func TestDemo2WithSerialize(t *testing.T) {
 	}
 
 	//交换share
-	sharesForUser2 := make(map[string]*pbc.Element)
-	sharesForUser2[user2Name] = user2Shares[user2Name]
-	sharesForUser2[user3Name] = user3Shares[user2Name]
-	sharesForUser2[user4Name] = user4Shares[user2Name]
-	user2PK, err := user2.AssembleShare(userNames, sharesForUser2, dabe, 3, 0, org1Name, "")
+	sharesForUser2 := make([]*pbc.Element, 3, 3)
+	sharesForUser2[0] = user2Shares[user2Name]
+	sharesForUser2[1] = user3Shares[user2Name]
+	sharesForUser2[2] = user4Shares[user2Name]
+	user2PK, err := user2.AssembleShare(sharesForUser2, dabe, 3, 0, org1Name, "")
 	if err != nil {
 		panic(err)
 	}
-	sharesForUser3 := make(map[string]*pbc.Element)
-	sharesForUser3[user2Name] = user2Shares[user3Name]
-	sharesForUser3[user3Name] = user3Shares[user3Name]
-	sharesForUser3[user4Name] = user4Shares[user3Name]
-	user3PK, err := user3.AssembleShare(userNames, sharesForUser3, dabe, 3, 0, org1Name, "")
+	sharesForUser3 := make([]*pbc.Element, 3, 3)
+	sharesForUser3[0] = user2Shares[user3Name]
+	sharesForUser3[1] = user3Shares[user3Name]
+	sharesForUser3[2] = user4Shares[user3Name]
+	user3PK, err := user3.AssembleShare(sharesForUser3, dabe, 3, 0, org1Name, "")
 	if err != nil {
 		panic(err)
 	}
-	sharesForUser4 := make(map[string]*pbc.Element)
-	sharesForUser4[user2Name] = user2Shares[user4Name]
-	sharesForUser4[user3Name] = user3Shares[user4Name]
-	sharesForUser4[user4Name] = user4Shares[user4Name]
-	user4PK, err := user4.AssembleShare(userNames, sharesForUser4, dabe, 3, 0, org1Name, "")
+	sharesForUser4 := make([]*pbc.Element, 3, 3)
+	sharesForUser4[0] = user2Shares[user4Name]
+	sharesForUser4[1] = user3Shares[user4Name]
+	sharesForUser4[2] = user4Shares[user4Name]
+	user4PK, err := user4.AssembleShare(sharesForUser4, dabe, 3, 0, org1Name, "")
 	if err != nil {
 		panic(err)
 	}
@@ -223,27 +223,27 @@ func TestDemo2WithSerialize(t *testing.T) {
 	}
 
 	//交换share
-	sharesForUser2_ := make(map[string]*pbc.Element)
-	sharesForUser2_[user2Name] = user2Shares_[user2Name]
-	sharesForUser2_[user3Name] = user3Shares_[user2Name]
-	sharesForUser2_[user4Name] = user4Shares_[user2Name]
-	user2PK_, err := user2.AssembleShare(userNames, sharesForUser2_, dabe, 3, 1, org1Name, org1Attr1)
+	sharesForUser2_ := make([]*pbc.Element, 3, 3)
+	sharesForUser2_[0] = user2Shares_[user2Name]
+	sharesForUser2_[1] = user3Shares_[user2Name]
+	sharesForUser2_[2] = user4Shares_[user2Name]
+	user2PK_, err := user2.AssembleShare(sharesForUser2_, dabe, 3, 1, org1Name, org1Attr1)
 	if err != nil {
 		panic(err)
 	}
-	sharesForUser3_ := make(map[string]*pbc.Element)
-	sharesForUser3_[user2Name] = user2Shares_[user3Name]
-	sharesForUser3_[user3Name] = user3Shares_[user3Name]
-	sharesForUser3_[user4Name] = user4Shares_[user3Name]
-	user3PK_, err := user3.AssembleShare(userNames, sharesForUser3_, dabe, 3, 1, org1Name, org1Attr1)
+	sharesForUser3_ := make([]*pbc.Element, 3, 3)
+	sharesForUser3_[0] = user2Shares_[user3Name]
+	sharesForUser3_[1] = user3Shares_[user3Name]
+	sharesForUser3_[2] = user4Shares_[user3Name]
+	user3PK_, err := user3.AssembleShare(sharesForUser3_, dabe, 3, 1, org1Name, org1Attr1)
 	if err != nil {
 		panic(err)
 	}
-	sharesForUser4_ := make(map[string]*pbc.Element)
-	sharesForUser4_[user2Name] = user2Shares_[user4Name]
-	sharesForUser4_[user3Name] = user3Shares_[user4Name]
-	sharesForUser4_[user4Name] = user4Shares_[user4Name]
-	user4PK_, err := user4.AssembleShare(userNames, sharesForUser4_, dabe, 3, 1, org1Name, org1Attr1)
+	sharesForUser4_ := make([]*pbc.Element, 3, 3)
+	sharesForUser4_[0] = user2Shares_[user4Name]
+	sharesForUser4_[1] = user3Shares_[user4Name]
+	sharesForUser4_[2] = user4Shares_[user4Name]
+	user4PK_, err := user4.AssembleShare(sharesForUser4_, dabe, 3, 1, org1Name, org1Attr1)
 	if err != nil {
 		panic(err)
 	}
