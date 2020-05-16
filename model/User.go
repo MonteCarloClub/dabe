@@ -9,9 +9,9 @@ import (
 type User struct {
 	APKMap   map[string]*APK
 	ASKMap   map[string]*ASK
-	EGGAlpha *pbc.Element	`field:"2"`
-	Alpha    *pbc.Element	`field:"3"`
-	GAlpha   *pbc.Element	`field:"0"`
+	EGGAlpha *pbc.Element `field:"2"`
+	Alpha    *pbc.Element `field:"3"`
+	GAlpha   *pbc.Element `field:"0"`
 	Name     string
 	OPKMap   map[string]*OPKPart
 	OSKMap   map[string]*OSKPart
@@ -82,6 +82,7 @@ func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, org
 		N:           n,
 		T:           t,
 		OthersShare: make([]*pbc.Element, 0, 0),
+		Share:       make(map[string]*pbc.Element, n),
 	}
 	opkPart := &OPKPart{
 		APKMap: make(map[string]*pbc.Element),
@@ -93,6 +94,7 @@ func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, org
 	for name, hGID := range userNames {
 		shares[name] = u.share(hGID, d, n, t, f)
 	}
+	oskPart.Share = shares
 	return shares, nil
 }
 
