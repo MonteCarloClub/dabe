@@ -20,7 +20,7 @@ func (this *Policy) Grow() *Policy {
 		return nil
 	} else {
 		policyStr := this.PolicyDescription
-		this.PolicyTreeRoot, this.AccessStruct = ParsePolicyStringtoTree(&policyStr)
+		this.PolicyTreeRoot, this.AccessStruct = ParsePolicyStringToTree(&policyStr)
 		//fmt.Println(this.AccessStruct)
 		this.AccessStruct.genLsssMatrix()
 		this.AccessStruct.padLsssMatrix()
