@@ -74,12 +74,20 @@ func Serialize2Map(obj interface{}) (map[string]interface{}, error) {
 			data[field.Name] = tempData
 			continue
 		case reflect.Map:
+			nestedName := field.Type.Elem().String()
 			tempData := make(map[string]interface{}, len(value.MapKeys()))
-			for _, key := range value.MapKeys() {
-				innerVal := value.MapIndex(key)
-				tempData[key.Interface().(string)], err = Serialize2Map(innerVal.Interface())
-				if err != nil {
-					return nil, err
+			if _, exist := specialHandle[nestedName]; !exist {
+				for _, key := range value.MapKeys() {
+					innerVal := value.MapIndex(key)
+					tempData[key.Interface().(string)], err = Serialize2Map(innerVal.Interface())
+					if err != nil {
+						return nil, err
+					}
+				}
+			} else {
+				for _, key := range value.MapKeys() {
+					innerVal := value.MapIndex(key)
+					tempData[key.Interface().(string)] = serializeHandle(field.Type.Elem(), innerVal)
 				}
 			}
 			data[field.Name] = tempData
@@ -124,7 +132,9 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 			if err != nil {
 				return nil, err
 			}
-			value.Set(reflect.ValueOf(result))
+			if result != nil {
+				value.Set(reflect.ValueOf(result))
+			}
 			continue
 		}
 
@@ -164,6 +174,7 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 				for k, v := range tempMap {
 					result, err := deserializeHandle(innerType, v, field.Tag)
 					if err != nil {
+						fmt.Println(err.Error())
 						return nil, err
 					}
 					tempData.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(result))
@@ -176,6 +187,7 @@ func deserialize2Struct(data map[string]interface{}, obj interface{}) (interface
 					}
 					result, err := deserialize2Struct(v.(map[string]interface{}), reflect.New(innerType).Interface())
 					if err != nil {
+						fmt.Println(err.Error())
 						return nil, err
 					}
 					tempData.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(result))
@@ -206,8 +218,14 @@ func serializeHandle(fieldType reflect.Type, val reflect.Value) interface{} {
 	case "*pbc.Pairing":
 		return ""
 	case "*pbc.Element":
+		if val.IsNil() {
+			return nil
+		}
 		return (val.Interface().(*pbc.Element)).String()
 	case "*big.Int":
+		if val.IsNil() {
+			return nil
+		}
 		return (val.Interface().(*big.Int)).String()
 	default:
 		return val.Interface()
@@ -215,6 +233,9 @@ func serializeHandle(fieldType reflect.Type, val reflect.Value) interface{} {
 }
 
 func deserializeHandle(fieldType reflect.Type, obj interface{}, tag reflect.StructTag) (interface{}, error) {
+	if obj == nil{
+		return nil, nil
+	}
 	switch fieldType.String() {
 	case "*pbc.Params":
 		return curve.Param, nil

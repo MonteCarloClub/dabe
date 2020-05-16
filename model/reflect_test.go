@@ -157,6 +157,17 @@ func TestDemo2WithSerialize(t *testing.T) {
 		panic(err)
 	}
 
+	user222 := new(User)
+	bytes, err := Serialize2Bytes(user2)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(bytes))
+	err = Deserialize2Struct(bytes, user222)
+	if err != nil {
+		panic(err)
+	}
+
 	//交换share
 	sharesForUser2 := make([]*pbc.Element, 3, 3)
 	sharesForUser2[0] = user2Shares[user2Name]

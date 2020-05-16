@@ -82,7 +82,7 @@ func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, org
 		N:           n,
 		T:           t,
 		OthersShare: make([]*pbc.Element, 0, 0),
-		Share:       make(map[string]*pbc.Element, n),
+		Share:       make(map[string]*pbc.Element),
 	}
 	opkPart := &OPKPart{
 		APKMap: make(map[string]*pbc.Element),
