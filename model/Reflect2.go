@@ -19,6 +19,7 @@ func init() {
 	specialHandle["*pbc.Element"] = struct{}{}
 	specialHandle["*big.Int"] = struct{}{}
 	specialHandle["int"] = struct{}{}
+	specialHandle["[]byte"] = struct{}{}
 	curve.Initialize()
 }
 
@@ -233,7 +234,7 @@ func serializeHandle(fieldType reflect.Type, val reflect.Value) interface{} {
 }
 
 func deserializeHandle(fieldType reflect.Type, obj interface{}, tag reflect.StructTag) (interface{}, error) {
-	if obj == nil{
+	if obj == nil {
 		return nil, nil
 	}
 	switch fieldType.String() {
