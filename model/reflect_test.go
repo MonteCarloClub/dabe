@@ -80,11 +80,21 @@ func TestDemoWithSerialize(t *testing.T) {
 	//加密两个不同的明文,这里authorityMap应该不传入私钥相关，方便起见如此做
 	m1 := "复旦的在读研究生或者24岁的人可以看见"
 	m2 := "复旦的23岁在读研究生可以看见"
-	cipher1, err := dabe.Encrypt(m1, "(Fudan_University:在读研究生 OR Age_Authority:24)", authorityMap)
+	cipher3, err := dabe.Encrypt(m1, "(Fudan_University:在读研究生 OR Age_Authority:24)", authorityMap)
 	if err != nil {
 		panic(err)
 	}
 	cipher2, err := dabe.Encrypt(m2, "(Fudan_University:在读研究生 AND Age_Authority:23)", authorityMap)
+	if err != nil {
+		panic(err)
+	}
+
+	cipher1 := new(Cipher)
+	bytes, err := Serialize2Bytes(cipher3)
+	if err != nil {
+		panic(err)
+	}
+	err = Deserialize2Struct(bytes, cipher1)
 	if err != nil {
 		panic(err)
 	}

@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 var specialHandle map[string]struct{}
@@ -19,7 +20,7 @@ func init() {
 	specialHandle["*pbc.Element"] = struct{}{}
 	specialHandle["*big.Int"] = struct{}{}
 	specialHandle["int"] = struct{}{}
-	specialHandle["[]byte"] = struct{}{}
+	specialHandle["[]uint8"] = struct{}{}
 	curve.Initialize()
 }
 
@@ -52,6 +53,7 @@ func Serialize2Map(obj interface{}) (map[string]interface{}, error) {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		value := v.Field(i)
+		println(field.Type.String())
 		if _, exist := specialHandle[field.Type.String()]; exist {
 			data[field.Name] = serializeHandle(field.Type, value)
 			continue
@@ -228,6 +230,8 @@ func serializeHandle(fieldType reflect.Type, val reflect.Value) interface{} {
 			return nil
 		}
 		return (val.Interface().(*big.Int)).String()
+	case "[]uint8":
+		return strings.Join(strings.Fields(fmt.Sprintf("%d", val.Interface().([]uint8))), ",")
 	default:
 		return val.Interface()
 	}
@@ -261,6 +265,18 @@ func deserializeHandle(fieldType reflect.Type, obj interface{}, tag reflect.Stru
 		return result, nil
 	case "int":
 		return int(obj.(float64)), nil
+	case "[]uint8":
+		//去掉前后的中括号
+		split := strings.Split(obj.(string)[1:len(obj.(string))-1], ",")
+		result := make([]byte, len(split), len(split))
+		for index, value := range split {
+			temp, err := strconv.ParseUint(value, 10, 8)
+			if err != nil {
+				return nil, err
+			}
+			result[index] = uint8(temp)
+		}
+		return result, nil
 	default:
 		if fieldType.Kind() == reflect.Struct {
 			return deserialize2Struct(obj.(map[string]interface{}), reflect.New(fieldType))
