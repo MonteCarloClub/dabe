@@ -21,6 +21,7 @@ func init() {
 	specialHandle["*big.Int"] = struct{}{}
 	specialHandle["int"] = struct{}{}
 	specialHandle["[]uint8"] = struct{}{}
+	specialHandle["[]string"] = struct{}{}
 	curve.Initialize()
 }
 
