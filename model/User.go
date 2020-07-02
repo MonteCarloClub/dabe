@@ -128,6 +128,7 @@ func (u *User) GenerateOrgAttrShare(n, t int, org *Org, d *DABE, attrName string
 	for name, hGID := range org.UserName2GID {
 		shares[name] = u.share(hGID, d, n, t, f)
 	}
+	askPart.Share = shares
 	return shares, nil
 }
 
