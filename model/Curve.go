@@ -1,4 +1,4 @@
-package DecentralizedABE
+package model
 
 import (
 	"github.com/Nik-U/pbc"

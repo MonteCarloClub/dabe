@@ -1,4 +1,4 @@
-package DecentralizedABE
+package model
 
 import (
 	"encoding/json"

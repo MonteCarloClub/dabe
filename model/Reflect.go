@@ -1,4 +1,4 @@
-package DecentralizedABE
+package model
 
 import (
 	"encoding/json"
@@ -87,7 +87,7 @@ func (d *Helper) Struct2Map(obj interface{}) map[string]interface{} {
 					apkmap[k1] = v1.String()
 				}
 				opkpart := &struct {
-					OPK    string;
+					OPK    string
 					APKMap map[string]string
 				}{opk, apkmap}
 				raw, _ := json.Marshal(opkpart)
@@ -128,9 +128,9 @@ func (d *Helper) Struct2Map(obj interface{}) map[string]interface{} {
 					ypart := v3.YPart.String()
 					ask := v3.ASK.String()
 					askpart := &struct {
-						F           []string;
-						OthersShare []string;
-						YPart       string;
+						F           []string
+						OthersShare []string
+						YPart       string
 						ASK         string
 					}{afStr, aotherStr, ypart, ask}
 					raw1, _ := json.Marshal(askpart)
@@ -138,13 +138,13 @@ func (d *Helper) Struct2Map(obj interface{}) map[string]interface{} {
 
 				}
 				oskpart := &struct {
-					AlphaPart   string;
-					ASKMap      map[string]string;
-					F           []string;
-					N           int;
-					T           int;
-					OthersShare []string;
-					OSK         string;
+					AlphaPart   string
+					ASKMap      map[string]string
+					F           []string
+					N           int
+					T           int
+					OthersShare []string
+					OSK         string
 					GOSK        string
 				}{alphapart, askmap, fStr, n, t, otherStr, osk, gosk}
 				raw2, _ := json.Marshal(oskpart)
@@ -229,7 +229,7 @@ func (d *Helper) Str2Struct(str []byte, obj interface{}) {
 			elem := make(map[string]*OPKPart)
 			for k, v := range raw {
 				value := &struct {
-					OPK    string;
+					OPK    string
 					APKMap map[string]string
 				}{}
 				_ = json.Unmarshal([]byte(v.(string)), value)
@@ -249,13 +249,13 @@ func (d *Helper) Str2Struct(str []byte, obj interface{}) {
 			elem := make(map[string]*OSKPart)
 			for k, v := range raw {
 				value := &struct {
-					AlphaPart   string;
-					ASKMap      map[string]string;
-					F           []string;
-					N           int;
-					T           int;
-					OthersShare []string;
-					OSK         string;
+					AlphaPart   string
+					ASKMap      map[string]string
+					F           []string
+					N           int
+					T           int
+					OthersShare []string
+					OSK         string
 					GOSK        string
 				}{}
 				_ = json.Unmarshal([]byte(v.(string)), value)
@@ -277,9 +277,9 @@ func (d *Helper) Str2Struct(str []byte, obj interface{}) {
 				//value1:=value["APKMap"].(map[string]interface{})
 				for k3, v3 := range value.ASKMap {
 					askpart := &struct {
-						F           []string;
-						OthersShare []string;
-						YPart       string;
+						F           []string
+						OthersShare []string
+						YPart       string
 						ASK         string
 					}{}
 					_ = json.Unmarshal([]byte(v3), askpart)

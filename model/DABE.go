@@ -1,10 +1,10 @@
-package DecentralizedABE
+package model
 
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/MonteCarloClub/dabe/model/AES"
 	"github.com/Nik-U/pbc"
-	"github.com/thorweiyan/DecentralizedABE2020/model/AES"
 )
 
 type DABE struct {

@@ -1,24 +1,25 @@
-package DecentralizedABE2020
+package main
 
 import (
 	"fmt"
-	DecentralizedABE "github.com/thorweiyan/DecentralizedABE2020/model"
+	"github.com/MonteCarloClub/dabe/model"
+	"github.com/Nik-U/pbc"
 )
 
 func main() {
 	//初始化和全局参数生成
-	dabe := new(DecentralizedABE.DABE)
+	dabe := new(model.DABE)
 	dabe.GlobalSetup()
 
 	//初始化两个不同的权限管理机构，并保存
-	authorityMap := make(map[string]DecentralizedABE.Authority)
+	authorityMap := make(map[string]model.Authority)
 	fudanUniversity := dabe.UserSetup("Fudan_University")
 	authorityMap["Fudan_University"] = fudanUniversity
 	ageAuthority := dabe.UserSetup("Age_Authority")
 	authorityMap["Age_Authority"] = ageAuthority
 
 	//保存所有属性公钥
-	pkMap := make(map[string]*DecentralizedABE.APK)
+	pkMap := make(map[string]*model.APK)
 	//生成属性私钥
 	tempPk, err := fudanUniversity.GenerateNewAttr("Fudan_University:在读研究生", dabe)
 	if err != nil {
