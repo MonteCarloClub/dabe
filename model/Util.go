@@ -109,7 +109,7 @@ func LookForMyRightBraket(s *string, posL int) int {
 			return -1
 		} else {
 			leftPos := posL + 1 + strings.Index((*s)[posL+1:rightPos], "(")
-			if leftPos > posL+1 {
+			if leftPos >= posL+1 {
 				posL = LookForMyRightBraket(s, leftPos)
 				rightPos = posL + 1 + strings.Index((*s)[posL+1:], ")")
 			} else {
