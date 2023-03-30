@@ -1,4 +1,4 @@
-package DecentralizedABE
+package model
 
 import (
 	"github.com/Nik-U/pbc"
@@ -34,9 +34,9 @@ type OPKPart struct {
 	APKMap map[string]*pbc.Element `field:"0"` //part of org attrs' gy
 }
 type OSKPart struct {
-	AlphaPart   *pbc.Element `field:"3"`   //part of org's Alpha
-	ASKMap      map[string]*ASKPart        //part of org attrs' y
-	F           []*pbc.Element `field:"3"` //for shamir's share
+	AlphaPart   *pbc.Element        `field:"3"` //part of org's Alpha
+	ASKMap      map[string]*ASKPart //part of org attrs' y
+	F           []*pbc.Element      `field:"3"` //for shamir's share
 	N           int
 	T           int
 	OthersShare []*pbc.Element `field:"3"` //for some special time

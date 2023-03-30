@@ -1,4 +1,4 @@
-package DecentralizedABE
+package model
 
 import (
 	"crypto/sha256"
@@ -9,9 +9,9 @@ import (
 type User struct {
 	APKMap   map[string]*APK
 	ASKMap   map[string]*ASK
-	EGGAlpha *pbc.Element	`field:"2"`
-	Alpha    *pbc.Element	`field:"3"`
-	GAlpha   *pbc.Element	`field:"0"`
+	EGGAlpha *pbc.Element `field:"2"`
+	Alpha    *pbc.Element `field:"3"`
+	GAlpha   *pbc.Element `field:"0"`
 	Name     string
 	OPKMap   map[string]*OPKPart
 	OSKMap   map[string]*OSKPart
