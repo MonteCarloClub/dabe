@@ -22,7 +22,7 @@ func (o *Org) GetAPKMap() map[string]*APK {
 	return o.APKMap
 }
 
-//生成组织公钥
+// 生成组织公钥
 func (o *Org) GenerateOPK(names []string, pks []*pbc.Element, d *DABE) error {
 	if len(pks) != o.T || len(names) != o.T {
 		return fmt.Errorf("pks or names isn't eq t")
@@ -45,7 +45,7 @@ func (o *Org) GenerateOPK(names []string, pks []*pbc.Element, d *DABE) error {
 	return nil
 }
 
-//生成属性
+// 生成属性
 func (o *Org) GenerateNewAttr(names []string, apks []*pbc.Element, attr string, d *DABE) error {
 	if len(apks) != o.T || len(names) != o.T {
 		return fmt.Errorf("pks or names isn't eq t")
@@ -73,7 +73,7 @@ func (o *Org) GenerateNewAttr(names []string, apks []*pbc.Element, attr string, 
 	return nil
 }
 
-//组装其他用户给的key part(auth)
+// 组装其他用户给的key part(auth)
 func (o *Org) AssembleKeyPart(names []string, keyParts []*pbc.Element, d *DABE) (*pbc.Element, error) {
 	if len(keyParts) != o.T || len(names) != o.T {
 		return nil, fmt.Errorf("pks or names isn't eq t")

@@ -24,7 +24,7 @@ type AccessStruct struct {
 	W                 []*pbc.Element
 }
 
-func NewAccessStruct() (*AccessStruct) {
+func NewAccessStruct() *AccessStruct {
 	A := new(AccessStruct)
 	A.CurrentPointer = 0
 	A.LeafID = -1
@@ -32,7 +32,7 @@ func NewAccessStruct() (*AccessStruct) {
 	return A
 }
 
-func (this *AccessStruct) ParsePolicyStringtoMap(s *string) (map[string]int) {
+func (this *AccessStruct) ParsePolicyStringtoMap(s *string) map[string]int {
 	this.PolicyMap = make(map[string]int)
 	*s = strings.Replace(*s, "AND", ",", -1)
 	*s = strings.Replace(*s, "OR", ",", -1)
@@ -155,7 +155,7 @@ func (this *AccessStruct) genElementLsssMatrix(a *pbc.Element) {
 	}
 }
 
-func (this *AccessStruct) LsssMatrixDotMulVector(row int, u []*pbc.Element) (*pbc.Element) {
+func (this *AccessStruct) LsssMatrixDotMulVector(row int, u []*pbc.Element) *pbc.Element {
 	l := len(u)
 	result := u[0].NewFieldElement().Set0()
 	for i := 0; i < l; i++ {
@@ -180,8 +180,8 @@ func (this *AccessStruct) gen_w(a *pbc.Element) {
 	//	fmt.Printf("x:: %v\n", x)
 }
 
-//// stop point
-func (this *AccessStruct) isSatisfy(node *[]int, leaf *[]int, Smap *map[string]int, r int) (bool) {
+// // stop point
+func (this *AccessStruct) isSatisfy(node *[]int, leaf *[]int, Smap *map[string]int, r int) bool {
 	var satisfy bool
 	var t = 0
 	for i := 2; i < len(this.A[r]); i++ {
