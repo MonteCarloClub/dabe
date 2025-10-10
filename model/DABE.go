@@ -3,6 +3,7 @@ package model
 import (
 	"crypto/sha256"
 	"fmt"
+
 	"github.com/MonteCarloClub/dabe/model/AES"
 	"github.com/Nik-U/pbc"
 )
@@ -132,6 +133,91 @@ func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]Authorit
 		c3s[i] = c3
 	}
 	fmt.Println("DABE Encrypt success")
+	return &Cipher{
+		C0:         c0,
+		C1s:        c1s,
+		C2s:        c2s,
+		C3s:        c3s,
+		CipherText: aesCipherText,
+		Policy:     uPolicy,
+	}, nil
+}
+
+// EncryptWithKeys 使用APK映射和权威机构公钥映射进行加密
+// apkMap: 属性名 -> APK 的映射
+// authorityPKMap: 权威机构名 -> 权威机构公钥(e(g,g)^alpha) 的映射
+func (d *DABE) EncryptWithKeys(m string, uPolicy string, apkMap map[string]*APK, authorityPKMap map[string]*pbc.Element) (*Cipher, error) {
+	fmt.Println("DABE EncryptWithKeys start")
+	aesKey := d.EGG.NewFieldElement().Rand()
+	aesCipherText, err := AES.AesEncrypt([]byte(m), (aesKey.Bytes())[0:32])
+	if err != nil {
+		return nil, fmt.Errorf("AES encrypt error\n")
+	}
+
+	policy := new(Policy)
+	d.growNewPolicy(uPolicy, d.CurveParam.GetNewZn(), policy)
+
+	n := len(policy.AccessStruct.LsssMatrix) - 1
+	l := len(policy.AccessStruct.LsssMatrix[0])
+	v := make([]*pbc.Element, l, l)
+	w := make([]*pbc.Element, l, l)
+	c1s := make([]*pbc.Element, n, n)
+	c2s := make([]*pbc.Element, n, n)
+	c3s := make([]*pbc.Element, n, n)
+	s := d.CurveParam.GetNewZn()
+
+	// c0 = M * e(g,g)^s
+	c0 := aesKey.Mul(aesKey, d.EGG.NewFieldElement().PowZn(d.EGG, s))
+	//generate v and w
+	v[0] = s
+	w[0] = s.NewFieldElement().Set0()
+	for i := 1; i < l; i++ {
+		v[i] = d.CurveParam.GetNewZn()
+		w[i] = d.CurveParam.GetNewZn()
+	}
+	//generate c1s,c2s,c3s
+	for i := 0; i < n; i++ {
+		//attr
+		attrStr := policy.AccessStruct.PolicyMaps[i+1]
+		authorityName := GetAuthorityNameFromAttrName(attrStr)
+
+		// 检查权威机构公钥是否存在
+		authorityPK := authorityPKMap[authorityName]
+		if authorityPK == nil {
+			return nil, fmt.Errorf("authority public key not found for authority: %s", authorityName)
+		}
+
+		// 检查属性公钥是否存在
+		pk := apkMap[attrStr]
+		if pk == nil {
+			return nil, fmt.Errorf("attribute public key not found for attribute: %s", attrStr)
+		}
+
+		//r
+		r := d.CurveParam.GetNewZn()
+		//c2 = g^r
+		c2 := d.G.NewFieldElement().PowZn(d.G, r)
+
+		//Ai*v
+		AiV := policy.AccessStruct.LsssMatrixDotMulVector(i+1, v)
+		//e(g,g)^(Ai*v)
+		c1 := d.EGG.NewFieldElement().PowZn(d.EGG, AiV)
+		//c1 = e(g,g)^(Ai*v) * e(g,g)^ ( alpha_p(x) * r_x )
+		rightTemp := authorityPK.NewFieldElement().PowZn(authorityPK, r)
+		c1.Mul(c1, rightTemp)
+
+		//Ai*w
+		AiW := policy.AccessStruct.LsssMatrixDotMulVector(i+1, w)
+		//g^(Ai*w)
+		c3 := d.G.NewFieldElement().PowZn(d.G, AiW)
+		//c3 = g^(y_p(x) * r) * g^(Ai*w)
+		c3.Mul(c3, pk.Gy.NewFieldElement().PowZn(pk.Gy, r))
+
+		c1s[i] = c1
+		c2s[i] = c2
+		c3s[i] = c3
+	}
+	fmt.Println("DABE EncryptWithKeys success")
 	return &Cipher{
 		C0:         c0,
 		C1s:        c1s,
