@@ -3,9 +3,14 @@ package model
 import (
 	"crypto/sha256"
 	"fmt"
+
 	"github.com/Nik-U/pbc"
 )
 
+// TODO: 用户里面是不是应该增加一个字段，表示用户已获得授权的属性
+// 现在这里apk.ask是用户管理的属性，而用户获得授权的属性在Main里面弄了个map，这是不合适的
+// 应该在User里面管理
+// [251011]现在client那边封装好了能用，那我这边先不动了
 type User struct {
 	APKMap   map[string]*APK
 	ASKMap   map[string]*ASK
@@ -15,6 +20,8 @@ type User struct {
 	Name     string
 	OPKMap   map[string]*OPKPart
 	OSKMap   map[string]*OSKPart
+	// br add【因为client封装好能用了，所以这里先不加】
+	// grantASKMap map[string]*pbc.Element //用户获得授权的属性的私钥集合
 }
 
 func (u *User) GetPK() *pbc.Element {
@@ -38,7 +45,7 @@ func (u *User) GenerateNewAttr(attr string, d *DABE) (*APK, error) {
 	return &pk, nil
 }
 
-//授权用户属性
+// 授权用户属性
 func (u *User) KeyGenByUser(gid string, attr string, d *DABE) (*pbc.Element, error) {
 	if u.ASKMap[attr] == nil {
 		return nil, fmt.Errorf("don't have this attr, error when %s", attr)
@@ -50,7 +57,7 @@ func (u *User) KeyGenByUser(gid string, attr string, d *DABE) (*pbc.Element, err
 	return key, nil
 }
 
-//授权组织属性
+// 授权组织属性
 func (u *User) KeyGenByOrg(gid string, attr string, d *DABE, orgName string) (*pbc.Element, error) {
 	if u.OSKMap[orgName] == nil || u.OSKMap[orgName].ASKMap[attr] == nil {
 		return nil, fmt.Errorf("don't have this attr, error when %s", attr)
@@ -62,7 +69,7 @@ func (u *User) KeyGenByOrg(gid string, attr string, d *DABE, orgName string) (*p
 	return key, nil
 }
 
-//创建Org所需的秘密share
+// 创建Org所需的秘密share
 func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, orgName string, d *DABE) (
 	map[string]*pbc.Element, error) {
 
@@ -96,7 +103,7 @@ func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, org
 	return shares, nil
 }
 
-//创建Org属性所需的秘密share
+// 创建Org属性所需的秘密share
 func (u *User) GenerateOrgAttrShare(n, t int, org *Org, d *DABE, attrName string) (
 	map[string]*pbc.Element, error) {
 
@@ -129,7 +136,7 @@ func (u *User) GenerateOrgAttrShare(n, t int, org *Org, d *DABE, attrName string
 	return shares, nil
 }
 
-//组装其他用户的share，传入aid为0表示为了生成opk，为1表示为了生成apk
+// 组装其他用户的share，传入aid为0表示为了生成opk，为1表示为了生成apk
 func (u *User) AssembleShare(names []string, name2share map[string]*pbc.Element, d *DABE,
 	n int, aid int, orgName string, attrName string) (*pbc.Element, error) {
 
@@ -156,7 +163,7 @@ func (u *User) AssembleShare(names []string, name2share map[string]*pbc.Element,
 	}
 }
 
-//get sij
+// get sij
 func (u *User) share(otherHGID *pbc.Element, d *DABE, n, t int, f []*pbc.Element) *pbc.Element {
 	sij := d.CurveParam.Get0FromZn()
 	//from t-1 -> 1, O(t)

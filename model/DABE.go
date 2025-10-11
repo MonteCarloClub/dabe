@@ -146,7 +146,8 @@ func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]Authorit
 // EncryptWithKeys 使用APK映射和权威机构公钥映射进行加密
 // apkMap: 属性名 -> APK 的映射
 // authorityPKMap: 权威机构名 -> 权威机构公钥(e(g,g)^alpha) 的映射
-func (d *DABE) EncryptWithKeys(m string, uPolicy string, apkMap map[string]*APK, authorityPKMap map[string]*pbc.Element) (*Cipher, error) {
+func (d *DABE) EncryptWithKeys(m string, policyWithKeys *PolicyWithKeys) (*Cipher, error) {
+	// func (d *DABE) EncryptWithKeys(m string, uPolicy string, apkMap map[string]*APK, authorityPKMap map[string]*pbc.Element) (*Cipher, error) {
 	fmt.Println("DABE EncryptWithKeys start")
 	aesKey := d.EGG.NewFieldElement().Rand()
 	aesCipherText, err := AES.AesEncrypt([]byte(m), (aesKey.Bytes())[0:32])
@@ -154,8 +155,9 @@ func (d *DABE) EncryptWithKeys(m string, uPolicy string, apkMap map[string]*APK,
 		return nil, fmt.Errorf("AES encrypt error\n")
 	}
 
-	policy := new(Policy)
-	d.growNewPolicy(uPolicy, d.CurveParam.GetNewZn(), policy)
+	policy := policyWithKeys.Policy
+	apkMap := policyWithKeys.APKMap
+	authorityPKMap := policyWithKeys.AuthorityPKMap
 
 	n := len(policy.AccessStruct.LsssMatrix) - 1
 	l := len(policy.AccessStruct.LsssMatrix[0])
@@ -224,7 +226,7 @@ func (d *DABE) EncryptWithKeys(m string, uPolicy string, apkMap map[string]*APK,
 		C2s:        c2s,
 		C3s:        c3s,
 		CipherText: aesCipherText,
-		Policy:     uPolicy,
+		Policy:     policyWithKeys.PolicyStr,
 	}, nil
 }
 
@@ -320,4 +322,42 @@ func (d *DABE) growNewPolicy(s string, p *pbc.Element, policy *Policy) {
 	policy.PolicyDescription = s
 	policy.Grow()
 	policy.AccessStruct.genElementLsssMatrix(p)
+}
+
+type PolicyWithKeys struct {
+	PolicyStr      string
+	Policy         Policy
+	APKMap         map[string]*APK         // 属性名 -> APK 的映射
+	AuthorityPKMap map[string]*pbc.Element // 权威机构名 -> 权威机构公钥(e(g,g)^alpha) 的映射
+}
+
+// 解析policy字符串，生成Policy，并返回PolicyWithKeys
+// 注意这里返回的PolicyWithKeys里面的APKMap和AuthorityPKMap是空的，需要调用者之后自己填充
+// 填充方法：调用Build函数，即根据PolicyWithKeys.Policy.AccessStruct.PolicyMap中的属性名，从外部的apkMapAll和authorityPKMapAll中获取
+// 或者，在铁塔的client和server中，是从数据库/文件中读取
+func (d *DABE) GeneratePolicyWithKeys(uPolicy string) (*PolicyWithKeys, error) {
+	policy := new(Policy)
+	d.growNewPolicy(uPolicy, d.CurveParam.GetNewZn(), policy)
+	policyWithKeys := PolicyWithKeys{
+		PolicyStr:      uPolicy,
+		Policy:         *policy,
+		APKMap:         make(map[string]*APK),
+		AuthorityPKMap: make(map[string]*pbc.Element),
+	}
+	return &policyWithKeys, nil
+}
+
+// 根据PolicyWithKeys中的Policy，结合外部传入的apkMapAll和authorityPKMapAll，填充APKMap和AuthorityPKMap
+// 在铁塔项目中，需要加密方从数据库/文件中读取对应属性和权威机构的公钥，拼装成完整的PolicyWithKeys
+func (pwk *PolicyWithKeys) Build(apkMapAll map[string]*APK, authorityPKMapAll map[string]*pbc.Element) error {
+	n := len(pwk.Policy.AccessStruct.LsssMatrix) - 1
+
+	for i := 0; i < n; i++ {
+		attrStr := pwk.Policy.AccessStruct.PolicyMaps[i+1]
+		pwk.APKMap[attrStr] = apkMapAll[attrStr]
+		authorityName := GetAuthorityNameFromAttrName(attrStr)
+		pwk.AuthorityPKMap[authorityName] = authorityPKMapAll[authorityName]
+	}
+
+	return nil
 }

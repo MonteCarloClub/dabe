@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/MonteCarloClub/dabe/model"
 	"github.com/Nik-U/pbc"
 )
@@ -94,4 +95,69 @@ func main() {
 	} else {
 		fmt.Println("24岁的无名氏正常地失败于： " + err.Error())
 	}
+
+	// 新增测试，用EncryptWithKeys进行加密
+	apkMapAll := make(map[string]*model.APK)
+	authorityPKMapAll := make(map[string]*pbc.Element)
+	for name, authority := range authorityMap {
+		// apkMapAll[name] = authority.GetAPKMap()
+		authorityPKMapAll[name] = authority.GetPK()
+		for attr, apk := range authority.GetAPKMap() {
+			apkMapAll[attr] = apk
+		}
+	}
+	policy1Str := "(Fudan_University:在读研究生 OR Age_Authority:24)"
+	policy2Str := "(Fudan_University:在读研究生 AND Age_Authority:23)"
+	policyWithKeys1, err := dabe.GeneratePolicyWithKeys(policy1Str)
+	if err != nil {
+		panic(err)
+	}
+	policyWithKeys2, err := dabe.GeneratePolicyWithKeys(policy2Str)
+	if err != nil {
+		panic(err)
+	}
+	// 构建完整的PolicyWithKeys
+	err = policyWithKeys1.Build(apkMapAll, authorityPKMapAll)
+	if err != nil {
+		panic(err)
+	}
+	err = policyWithKeys2.Build(apkMapAll, authorityPKMapAll)
+	if err != nil {
+		panic(err)
+	}
+	// 使用完整的PolicyWithKeys进行加密
+	new_cipher1, err := dabe.EncryptWithKeys(m1, policyWithKeys1)
+	if err != nil {
+		panic(err)
+	}
+	new_cipher2, err := dabe.EncryptWithKeys(m2, policyWithKeys2)
+	if err != nil {
+		panic(err)
+	}
+	//解密
+	new_decrypt, err := dabe.Decrypt(new_cipher1, user1Privatekeys, "陈泽宁")
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("(new test) 陈泽宁解密出了： " + string(new_decrypt))
+	}
+	new_decrypt2, err := dabe.Decrypt(new_cipher2, user1Privatekeys, "陈泽宁")
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("(new test) 陈泽宁解密出了： " + string(new_decrypt2))
+	}
+	new_decrypt3, err := dabe.Decrypt(new_cipher1, user2Privatekeys, "24岁的无名氏")
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Println("(new test) 24岁的无名氏解密出了： " + string(new_decrypt3))
+	}
+	new_decrypt4, err := dabe.Decrypt(new_cipher2, user2Privatekeys, "24岁的无名氏")
+	if err == nil {
+		fmt.Println("(new test) 24岁的无名氏错误解密出了： " + string(new_decrypt4))
+	} else {
+		fmt.Println("(new test) 24岁的无名氏正常地失败于： " + err.Error())
+	}
+
 }
