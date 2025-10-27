@@ -1,9 +1,10 @@
 package model
 
 import (
-	"github.com/Nik-U/pbc"
 	"hash"
 	"math/big"
+
+	"github.com/Nik-U/pbc"
 )
 
 type CurveParam struct {
@@ -13,80 +14,80 @@ type CurveParam struct {
 	Pairing *pbc.Pairing
 }
 
-func (this *CurveParam) Initialize() {
-	this.p = new(big.Int)
+func (cp *CurveParam) Initialize() {
+	cp.p = new(big.Int)
 	p1 := new(big.Int)
 	p2 := new(big.Int)
 	p3 := new(big.Int)
 	p1.SetString("242661090146032969904098483991985908921", 10) // octal
 	p2.SetString("215662396313044988944834777682074105079", 10) // octal
 	p3.SetString("253493408475411572624002367871313476827", 10) // octal
-	this.p.Mul(p1, p2)
-	this.p.Mul(this.p, p3)
-	this.Param = pbc.GenerateA1(this.p)
-	this.Pairing = this.Param.NewPairing()
+	cp.p.Mul(p1, p2)
+	cp.p.Mul(cp.p, p3)
+	cp.Param = pbc.GenerateA1(cp.p)
+	cp.Pairing = cp.Param.NewPairing()
 }
 
-func (this *CurveParam) GetP() *big.Int {
+func (cp *CurveParam) GetP() *big.Int {
 	N := new(big.Int)
-	N.Set(this.p)
+	N.Set(cp.p)
 	return N
 }
-func (this *CurveParam) GetPairing() *pbc.Pairing {
-	return this.Pairing
+func (cp *CurveParam) GetPairing() *pbc.Pairing {
+	return cp.Pairing
 }
 
-func (this *CurveParam) GetNewG1() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(0).Rand()
+func (cp *CurveParam) GetNewG1() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(0).Rand()
 	return g
 }
 
-func (this *CurveParam) GetNewGT() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(2).Rand()
+func (cp *CurveParam) GetNewGT() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(2).Rand()
 	return g
 }
 
-func (this *CurveParam) GetNewZn() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(3).Rand()
+func (cp *CurveParam) GetNewZn() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(3).Rand()
 	return g
 }
 
-func (this *CurveParam) GetG1FromStringHash(s string, hash hash.Hash) *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(0).SetFromStringHash(s, hash)
+func (cp *CurveParam) GetG1FromStringHash(s string, hash hash.Hash) *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(0).SetFromStringHash(s, hash)
 	return g
 }
 
-func (this *CurveParam) GetZnFromStringHash(s string, hash hash.Hash) *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(3).SetFromStringHash(s, hash)
+func (cp *CurveParam) GetZnFromStringHash(s string, hash hash.Hash) *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(3).SetFromStringHash(s, hash)
 	return g
 }
 
-func (this *CurveParam) Get0FromG1() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(0).Set0()
+func (cp *CurveParam) Get0FromG1() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(0).Set0()
 	return g
 }
 
-func (this *CurveParam) Get0FromGT() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(2).Set0()
+func (cp *CurveParam) Get0FromGT() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(2).Set0()
 	return g
 }
 
-func (this *CurveParam) Get0FromZn() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(3).Set0()
+func (cp *CurveParam) Get0FromZn() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(3).Set0()
 	return g
 }
 
-func (this *CurveParam) Get1FromG1() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(0).Set1()
+func (cp *CurveParam) Get1FromG1() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(0).Set1()
 	return g
 }
 
-func (this *CurveParam) Get1FromGT() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(2).Set1()
+func (cp *CurveParam) Get1FromGT() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(2).Set1()
 	return g
 }
 
-func (this *CurveParam) Get1FromZn() *pbc.Element {
-	g := this.Pairing.NewUncheckedElement(3).Set1()
+func (cp *CurveParam) Get1FromZn() *pbc.Element {
+	g := cp.Pairing.NewUncheckedElement(3).Set1()
 	return g
 }

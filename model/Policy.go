@@ -14,19 +14,19 @@ type Policy struct {
 	AccessStruct      *AccessStruct
 }
 
-func (this *Policy) Grow() *Policy {
-	if this.PolicyDescription == "" {
+func (p *Policy) Grow() *Policy {
+	if p.PolicyDescription == "" {
 		fmt.Printf("error:: user's policy description is EMPTY.\n")
 		return nil
 	} else {
-		policyStr := this.PolicyDescription
-		this.PolicyTreeRoot, this.AccessStruct = ParsePolicyStringToTree(&policyStr)
-		//fmt.Println(this.AccessStruct)
-		this.AccessStruct.genLsssMatrix()
-		this.AccessStruct.padLsssMatrix()
-		this.AccessStruct.genPolicyTreePath()
+		policyStr := p.PolicyDescription
+		p.PolicyTreeRoot, p.AccessStruct = ParsePolicyStringToTree(&policyStr)
+		//fmt.Println(p.AccessStruct)
+		p.AccessStruct.genLsssMatrix()
+		p.AccessStruct.padLsssMatrix()
+		p.AccessStruct.genPolicyTreePath()
 	}
-	return this
+	return p
 }
 
 /*  Policy Node */
@@ -50,40 +50,40 @@ func NewPolicyNode(attr string, t byte) *PolicyNode {
 	//fmt.Printf("NewPolicyNode:: %v\n",Attr)
 	return N
 }
-func (this *PolicyNode) GetAttr() string {
-	return this.Attr
+func (n *PolicyNode) GetAttr() string {
+	return n.Attr
 }
-func (this *PolicyNode) SetAttr(attr string) *PolicyNode {
-	this.Attr = attr
-	return this
+func (n *PolicyNode) SetAttr(attr string) *PolicyNode {
+	n.Attr = attr
+	return n
 }
-func (this *PolicyNode) GetMax() int {
-	return this.Max
+func (n *PolicyNode) GetMax() int {
+	return n.Max
 }
-func (this *PolicyNode) SetMax(max int) *PolicyNode {
-	this.Max = max
-	return this
+func (n *PolicyNode) SetMax(max int) *PolicyNode {
+	n.Max = max
+	return n
 }
-func (this *PolicyNode) GetOperation() byte {
-	return this.Operation
+func (n *PolicyNode) GetOperation() byte {
+	return n.Operation
 }
-func (this *PolicyNode) SetOperation(o byte) *PolicyNode {
-	this.Operation = o
-	return this
+func (n *PolicyNode) SetOperation(o byte) *PolicyNode {
+	n.Operation = o
+	return n
 }
-func (this *PolicyNode) GetMin() int {
-	return this.Min
+func (n *PolicyNode) GetMin() int {
+	return n.Min
 }
-func (this *PolicyNode) SetMin(min int) *PolicyNode {
-	this.Min = min
-	return this
+func (n *PolicyNode) SetMin(min int) *PolicyNode {
+	n.Min = min
+	return n
 }
-func (this *PolicyNode) GetChildren() []*PolicyNode {
-	return this.Children
+func (n *PolicyNode) GetChildren() []*PolicyNode {
+	return n.Children
 }
-func (this *PolicyNode) SetChildren(children []*PolicyNode) *PolicyNode {
-	this.Children = children
-	return this
+func (n *PolicyNode) SetChildren(children []*PolicyNode) *PolicyNode {
+	n.Children = children
+	return n
 }
 
 type sendpon struct {
@@ -97,8 +97,7 @@ type sendpon struct {
 
 func (b *PolicyNode) Serialize() []byte {
 	var result bytes.Buffer
-	var spon *sendpon
-	spon = new(sendpon)
+	var spon *sendpon = new(sendpon)
 	spon.Type = b.Type
 	spon.Operation = b.Operation
 	spon.Attr = b.Attr
@@ -147,8 +146,7 @@ type sendpy struct {
 
 func (b *Policy) Serialize() []byte {
 	var result bytes.Buffer
-	var spy *sendpy
-	spy = new(sendpy)
+	var spy *sendpy = new(sendpy)
 	spy.PolicyDescription = b.PolicyDescription
 	spy.PolicyTreeRoot = b.PolicyTreeRoot.Serialize()
 	spy.AccessStruct = b.AccessStruct.Serialize()

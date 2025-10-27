@@ -2,8 +2,9 @@ package model
 
 import (
 	"fmt"
-	"github.com/Nik-U/pbc"
 	"testing"
+
+	"github.com/Nik-U/pbc"
 )
 
 /*func TestReflect(t *testing.T) {

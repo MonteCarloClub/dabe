@@ -7,10 +7,6 @@ import (
 	"github.com/Nik-U/pbc"
 )
 
-// TODO: 用户里面是不是应该增加一个字段，表示用户已获得授权的属性
-// 现在这里apk.ask是用户管理的属性，而用户获得授权的属性在Main里面弄了个map，这是不合适的
-// 应该在User里面管理
-// [251011]现在client那边封装好了能用，那我这边先不动了
 type User struct {
 	APKMap   map[string]*APK
 	ASKMap   map[string]*ASK
@@ -20,8 +16,6 @@ type User struct {
 	Name     string
 	OPKMap   map[string]*OPKPart
 	OSKMap   map[string]*OSKPart
-	// br add【因为client封装好能用了，所以这里先不加】
-	// grantASKMap map[string]*pbc.Element //用户获得授权的属性的私钥集合
 }
 
 func (u *User) GetPK() *pbc.Element {
@@ -77,7 +71,7 @@ func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, org
 		return nil, fmt.Errorf("already has this org")
 	}
 	alphaPart := d.CurveParam.GetNewZn()
-	f := make([]*pbc.Element, 0, 0)
+	f := make([]*pbc.Element, 0)
 	f = append(f, alphaPart)
 	for i := 1; i < t; i++ {
 		f = append(f, d.CurveParam.GetNewZn())
@@ -88,7 +82,7 @@ func (u *User) GenerateOrgShare(n, t int, userNames map[string]*pbc.Element, org
 		F:           f,
 		N:           n,
 		T:           t,
-		OthersShare: make([]*pbc.Element, 0, 0),
+		OthersShare: make([]*pbc.Element, 0),
 	}
 	opkPart := &OPKPart{
 		APKMap: make(map[string]*pbc.Element),
@@ -117,7 +111,7 @@ func (u *User) GenerateOrgAttrShare(n, t int, org *Org, d *DABE, attrName string
 		return nil, fmt.Errorf("already has this attr")
 	}
 	yPart := d.CurveParam.GetNewZn()
-	f := make([]*pbc.Element, 0, 0)
+	f := make([]*pbc.Element, 0)
 	f = append(f, yPart)
 	for i := 1; i < t; i++ {
 		f = append(f, d.CurveParam.GetNewZn())

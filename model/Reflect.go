@@ -3,9 +3,10 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Nik-U/pbc"
 	"math/big"
 	"reflect"
+
+	"github.com/Nik-U/pbc"
 )
 
 type Helper struct {
@@ -196,7 +197,7 @@ func (d *Helper) Str2Struct(str []byte, obj interface{}) {
 			tem = int(data[t.Field(i).Name].(float64))
 		} else if t.Field(i).Type.String() == "[]*pbc.Element" {
 			raw := data[t.Field(i).Name].([]interface{})
-			c1s := make([]*pbc.Element, len(raw), len(raw))
+			c1s := make([]*pbc.Element, len(raw))
 			for i, v := range raw {
 				c1s[i], _ = helper.G.NewFieldElement().SetString(v.(string), 10)
 			}
@@ -263,11 +264,11 @@ func (d *Helper) Str2Struct(str []byte, obj interface{}) {
 				alphapart, _ := helper.G.NewFieldElement().SetString(value.AlphaPart, 10)
 				osk, _ := helper.G.NewFieldElement().SetString(value.OSK, 10)
 				gosk, _ := helper.G.NewFieldElement().SetString(value.GOSK, 10)
-				f := make([]*pbc.Element, len(value.F), len(value.F))
+				f := make([]*pbc.Element, len(value.F))
 				for i1, v1 := range value.F {
 					f[i1], _ = helper.G.NewFieldElement().SetString(v1, 10)
 				}
-				other := make([]*pbc.Element, len(value.OthersShare), len(value.OthersShare))
+				other := make([]*pbc.Element, len(value.OthersShare))
 				for i2, v2 := range value.OthersShare {
 					other[i2], _ = helper.G.NewFieldElement().SetString(v2, 10)
 				}
@@ -285,11 +286,11 @@ func (d *Helper) Str2Struct(str []byte, obj interface{}) {
 					_ = json.Unmarshal([]byte(v3), askpart)
 					ypart, _ := helper.G.NewFieldElement().SetString(askpart.YPart, 10)
 					ask, _ := helper.G.NewFieldElement().SetString(askpart.ASK, 10)
-					af := make([]*pbc.Element, len(askpart.F), len(askpart.F))
+					af := make([]*pbc.Element, len(askpart.F))
 					for i4, v4 := range askpart.F {
 						af[i4], _ = helper.G.NewFieldElement().SetString(v4, 10)
 					}
-					aother := make([]*pbc.Element, len(askpart.OthersShare), len(askpart.OthersShare))
+					aother := make([]*pbc.Element, len(askpart.OthersShare))
 					for i5, v5 := range askpart.OthersShare {
 						aother[i5], _ = helper.G.NewFieldElement().SetString(v5, 10)
 					}

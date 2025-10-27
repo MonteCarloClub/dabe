@@ -71,7 +71,7 @@ func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]Authorit
 	aesKey := d.EGG.NewFieldElement().Rand()
 	aesCipherText, err := AES.AesEncrypt([]byte(m), (aesKey.Bytes())[0:32])
 	if err != nil {
-		return nil, fmt.Errorf("AES encrypt error\n")
+		return nil, fmt.Errorf("AES encrypt error")
 	}
 
 	policy := new(Policy)
@@ -79,11 +79,11 @@ func (d *DABE) Encrypt(m string, uPolicy string, authorities map[string]Authorit
 
 	n := len(policy.AccessStruct.LsssMatrix) - 1
 	l := len(policy.AccessStruct.LsssMatrix[0])
-	v := make([]*pbc.Element, l, l)
-	w := make([]*pbc.Element, l, l)
-	c1s := make([]*pbc.Element, n, n)
-	c2s := make([]*pbc.Element, n, n)
-	c3s := make([]*pbc.Element, n, n)
+	v := make([]*pbc.Element, l)
+	w := make([]*pbc.Element, l)
+	c1s := make([]*pbc.Element, n)
+	c2s := make([]*pbc.Element, n)
+	c3s := make([]*pbc.Element, n)
 	s := d.CurveParam.GetNewZn()
 
 	// c0 = M * e(g,g)^s
@@ -152,7 +152,7 @@ func (d *DABE) EncryptWithKeys(m string, policyWithKeys *PolicyWithKeys) (*Ciphe
 	aesKey := d.EGG.NewFieldElement().Rand()
 	aesCipherText, err := AES.AesEncrypt([]byte(m), (aesKey.Bytes())[0:32])
 	if err != nil {
-		return nil, fmt.Errorf("AES encrypt error\n")
+		return nil, fmt.Errorf("AES encrypt error")
 	}
 
 	policy := policyWithKeys.Policy
@@ -161,11 +161,11 @@ func (d *DABE) EncryptWithKeys(m string, policyWithKeys *PolicyWithKeys) (*Ciphe
 
 	n := len(policy.AccessStruct.LsssMatrix) - 1
 	l := len(policy.AccessStruct.LsssMatrix[0])
-	v := make([]*pbc.Element, l, l)
-	w := make([]*pbc.Element, l, l)
-	c1s := make([]*pbc.Element, n, n)
-	c2s := make([]*pbc.Element, n, n)
-	c3s := make([]*pbc.Element, n, n)
+	v := make([]*pbc.Element, l)
+	w := make([]*pbc.Element, l)
+	c1s := make([]*pbc.Element, n)
+	c2s := make([]*pbc.Element, n)
+	c3s := make([]*pbc.Element, n)
 	s := d.CurveParam.GetNewZn()
 
 	// c0 = M * e(g,g)^s
@@ -237,8 +237,8 @@ func (d *DABE) Decrypt(cipher *Cipher, privateKeys map[string]*pbc.Element, gid 
 	policy := new(Policy)
 	d.growNewPolicy(cipher.Policy, d.CurveParam.GetNewZn(), policy)
 	n := len(policy.AccessStruct.LsssMatrix) - 1
-	attrs := make([]string, 0, 0)
-	for key, _ := range privateKeys {
+	attrs := make([]string, 0)
+	for key := range privateKeys {
 		attrs = append(attrs, key)
 	}
 	// sum(cx * Ax) = (1,0,0,0...)
@@ -267,14 +267,14 @@ func (d *DABE) Decrypt(cipher *Cipher, privateKeys map[string]*pbc.Element, gid 
 	}
 	aesKey := d.EGG.NewFieldElement().Set(cipher.C0).ThenDiv(result)
 	if aesKey == nil {
-		return nil, fmt.Errorf("User policy not match,decrypt failed.\n")
+		return nil, fmt.Errorf("User policy not match,decrypt failed")
 	}
 	if len(aesKey.Bytes()) <= 32 {
-		return nil, fmt.Errorf("invalid aeskey:: decrypt failed.\n")
+		return nil, fmt.Errorf("invalid aeskey:: decrypt failed")
 	}
 	M, err := AES.AesDecrypt(cipher.CipherText, (aesKey.Bytes())[0:32])
 	if err != nil || M == nil {
-		return nil, fmt.Errorf("aes error:: decrypt failed.\n")
+		return nil, fmt.Errorf("aes error:: decrypt failed")
 	}
 	fmt.Println("DABE Decrypt success")
 	return M, nil
@@ -305,7 +305,7 @@ func (d *DABE) genCoefficient(attrs []string, policy *Policy) ([]*pbc.Element, e
 		}
 	}
 
-	w := make([]*pbc.Element, len(leafLine), len(leafLine))
+	w := make([]*pbc.Element, len(leafLine))
 	for i := 1; i < len(leafLine); i++ {
 		if leafLine[i] != 0 {
 			w[i] = d.CurveParam.GetNewZn().Set1().ThenDiv(d.CurveParam.GetNewZn().SetInt32(int32(leafLine[i])))

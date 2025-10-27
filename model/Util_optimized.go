@@ -7,54 +7,47 @@ import (
 	"strings"
 )
 
-/* <Policy Parser SECTION */
+/* <Policy Parser SECTION - Optimized Version */
+
 // ParsePolicyStringToTree 将策略字符串解析为策略树
 // 优化点：
 // 1. 添加错误返回
 // 2. 不修改原始字符串，使用副本
 // 3. 添加输入验证
-func ParsePolicyStringToTree(s *string) (*PolicyNode, *AccessStruct) {
-	if s == nil || *s == "" {
-		fmt.Printf("Error:: 策略字符串不能为空\n")
-		return nil, nil
+func ParsePolicyStringToTreeOptimized(s string) (*PolicyNode, *AccessStruct, error) {
+	if s == "" {
+		return nil, nil, errors.New("策略字符串不能为空")
 	}
 
-	// 使用副本进行映射解析（ParsePolicyStringtoMap会修改传入的字符串）
-	mapCopy := *s
+	// 使用副本，不修改原始字符串
+	original := s
 	AS := NewAccessStruct()
-	policyMap := AS.ParsePolicyStringtoMap(&mapCopy)
-	if len(policyMap) == 0 {
-		fmt.Printf("Error:: 解析策略映射失败\n")
-		return nil, nil
+	if err := AS.ParsePolicyStringtoMapOptimized(s); err != nil {
+		return nil, nil, fmt.Errorf("解析策略映射失败: %w", err)
 	}
 
-	// 使用另一个副本进行策略解析（标准化策略字符串）
-	parseCopy := *s
-	parseCopy = strings.ReplaceAll(parseCopy, "AND", "&&")
-	parseCopy = strings.ReplaceAll(parseCopy, "OR", "||")
-	parseCopy = strings.ReplaceAll(parseCopy, " ", "")
+	// 标准化策略字符串
+	normalized := strings.ReplaceAll(original, "AND", "&&")
+	normalized = strings.ReplaceAll(normalized, "OR", "||")
+	normalized = strings.ReplaceAll(normalized, " ", "")
 
-	mainPolicy, _, err := ParsePolicyString(AS, &parseCopy, 0, len(parseCopy)-1)
+	mainPolicy, _, err := ParsePolicyStringOptimized(AS, normalized, 0, len(normalized)-1)
 	if err != nil {
-		fmt.Printf("Error:: 解析策略字符串失败: %v\n", err)
-		return nil, nil
+		return nil, nil, fmt.Errorf("解析策略字符串失败: %w", err)
 	}
 
-	return mainPolicy, AS
+	return mainPolicy, AS, nil
 }
 
-// ParsePolicyString 递归解析策略字符串
+// ParsePolicyStringOptimized 递归解析策略字符串
 // 优化点：
 // 1. 添加错误处理
 // 2. 添加递归深度限制
 // 3. 改进逻辑可读性
-func ParsePolicyString(A *AccessStruct, s *string, startPos int, stopPos int) (*PolicyNode, int, error) {
+func ParsePolicyStringOptimized(A *AccessStruct, s string, startPos, stopPos int) (*PolicyNode, int, error) {
 	// 输入验证
-	if s == nil {
-		return nil, 0, errors.New("字符串指针为空")
-	}
-	if startPos < 0 || stopPos >= len(*s) || startPos > stopPos {
-		return nil, 0, fmt.Errorf("无效的位置参数: start=%d, stop=%d, len=%d", startPos, stopPos, len(*s))
+	if startPos < 0 || stopPos >= len(s) || startPos > stopPos {
+		return nil, 0, fmt.Errorf("无效的位置参数: start=%d, stop=%d, len=%d", startPos, stopPos, len(s))
 	}
 
 	// 检查递归深度（防止栈溢出）
@@ -78,15 +71,19 @@ func ParsePolicyString(A *AccessStruct, s *string, startPos int, stopPos int) (*
 
 	i := startPos + 1
 	for i <= stopPos {
-		// 查找左括号 - 在剩余范围内查找
-		leftPos := strings.Index((*s)[i:stopPos+1], "(")
+		// 查找左括号
+		searchEnd := stopPos + 1
+		if searchEnd > len(s) {
+			searchEnd = len(s)
+		}
+		leftPos := strings.Index(s[i:searchEnd], "(")
 
 		if leftPos != -1 {
 			// 处理括号前的内容
-			trueChildBuilder.WriteString((*s)[i : i+leftPos])
+			trueChildBuilder.WriteString(s[i : i+leftPos])
 
 			// 查找匹配的右括号
-			rightPos, err := LookForMyRightBraket(s, i+leftPos)
+			rightPos, err := findMatchingBracket(s, i+leftPos)
 			if err != nil {
 				return nil, 0, fmt.Errorf("括号不匹配: %w", err)
 			}
@@ -95,7 +92,7 @@ func ParsePolicyString(A *AccessStruct, s *string, startPos int, stopPos int) (*
 			}
 
 			// 递归解析子策略
-			tmpPolicy, tmpID, err := ParsePolicyString(A, s, i+leftPos, rightPos)
+			tmpPolicy, tmpID, err := ParsePolicyStringOptimized(A, s, i+leftPos, rightPos)
 			if err != nil {
 				return nil, 0, fmt.Errorf("解析子策略失败: %w", err)
 			}
@@ -106,7 +103,11 @@ func ParsePolicyString(A *AccessStruct, s *string, startPos int, stopPos int) (*
 			i = rightPos + 1
 		} else {
 			// 没有更多括号，处理剩余内容（不包括最外层的右括号）
-			trueChildBuilder.WriteString((*s)[i:stopPos])
+			if stopPos < len(s) && s[stopPos] == ')' {
+				trueChildBuilder.WriteString(s[i:stopPos])
+			} else {
+				trueChildBuilder.WriteString(s[i : stopPos+1])
+			}
 			break
 		}
 	}
@@ -166,19 +167,19 @@ func ParsePolicyString(A *AccessStruct, s *string, startPos int, stopPos int) (*
 	return this, ID, nil
 }
 
-// LookForMyRightBraket 查找匹配的右括号
+// findMatchingBracket 查找匹配的右括号
 // 优化点：
 // 1. 使用计数器代替递归，避免栈溢出
 // 2. 添加错误返回
 // 3. 改进逻辑清晰度
-func LookForMyRightBraket(s *string, posL int) (int, error) {
-	if s == nil || posL >= len(*s) || (*s)[posL] != '(' {
+func findMatchingBracket(s string, leftPos int) (int, error) {
+	if leftPos >= len(s) || s[leftPos] != '(' {
 		return -1, errors.New("起始位置不是左括号")
 	}
 
 	depth := 1
-	for i := posL + 1; i < len(*s); i++ {
-		switch (*s)[i] {
+	for i := leftPos + 1; i < len(s); i++ {
+		switch s[i] {
 		case '(':
 			depth++
 		case ')':
@@ -192,37 +193,68 @@ func LookForMyRightBraket(s *string, posL int) (int, error) {
 	return -1, errors.New("未找到匹配的右括号")
 }
 
+// ParsePolicyStringtoMapOptimized 优化的策略字符串映射解析
+func (as *AccessStruct) ParsePolicyStringtoMapOptimized(s string) error {
+	if s == "" {
+		return errors.New("策略字符串不能为空")
+	}
+
+	as.PolicyMap = make(map[string]int)
+
+	// 标准化字符串
+	normalized := strings.ReplaceAll(s, "AND", ",")
+	normalized = strings.ReplaceAll(normalized, "OR", ",")
+	normalized = strings.ReplaceAll(normalized, " ", "")
+	normalized = strings.ReplaceAll(normalized, "(", "")
+	normalized = strings.ReplaceAll(normalized, ")", "")
+
+	attrs := strings.Split(normalized, ",")
+
+	// 预分配切片容量
+	as.PolicyMaps = make([]string, 0, len(attrs)+1)
+	as.PolicyMaps = append(as.PolicyMaps, "") // 索引0为空
+
+	index := 1
+	for _, attr := range attrs {
+		attr = strings.TrimSpace(attr)
+		if attr != "" {
+			// 避免重复属性
+			if _, exists := as.PolicyMap[attr]; !exists {
+				as.PolicyMap[attr] = index
+				as.PolicyMaps = append(as.PolicyMaps, attr)
+				index++
+			}
+		}
+	}
+
+	if len(as.PolicyMap) == 0 {
+		return errors.New("策略字符串中没有有效的属性")
+	}
+
+	return nil
+}
+
 /* Policy Parser SECTION> */
 
-/* <Utility SECTION */
-//读取文件需要经常进行错误检查，这个帮助方法可以精简下面的错误检查过程。
-func checkError(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
+/* <Utility SECTION - Optimized */
 
-/* Utility SECTION> */
-
-/* utils */
-// CharToString 优化的字符重复函数
+// CharToStringOptimized 优化的字符重复函数
 // 优化点：使用 strings.Repeat 代替循环拼接
-func CharToString(s string, t int) string {
-	if t <= 0 {
+func CharToStringOptimized(s string, count int) string {
+	if count <= 0 {
 		return ""
 	}
-	return strings.Repeat(s, t)
+	return strings.Repeat(s, count)
 }
 
-// GetPadding 优化的填充生成函数
+// GetPaddingOptimized 优化的填充生成函数
 // 优化点：
 // 1. 使用 strings.Builder
 // 2. 减少字符串拼接次数
 // 3. 添加参数验证
-func GetPadding(m int, l int, depth int) string {
+func GetPaddingOptimized(m, l, depth int) (string, error) {
 	if depth < 1 || l < 1 || l > depth {
-		fmt.Printf("Error:: 无效的参数: m=%d, l=%d, depth=%d\n", m, l, depth)
-		return ""
+		return "", fmt.Errorf("无效的参数: m=%d, l=%d, depth=%d", m, l, depth)
 	}
 
 	var builder strings.Builder
@@ -245,17 +277,15 @@ func GetPadding(m int, l int, depth int) string {
 
 	result := builder.String()
 	if len(result) < depth-1 {
-		fmt.Printf("Error:: 生成的填充长度不足\n")
-		return ""
+		return "", errors.New("生成的填充长度不足")
 	}
 
-	return result[len(result)-(depth-1):]
+	return result[len(result)-(depth-1):], nil
 }
 
-// CheckAttrName 优化的属性名称检查
-// 检查属性是否以组织/用户名称为前缀
+// CheckAttrNameOptimized 优化的属性名称检查
 // 优化点：避免重复分割
-func CheckAttrName(attrName, authorityName string) bool {
+func CheckAttrNameOptimized(attrName, authorityName string) bool {
 	if attrName == "" || authorityName == "" {
 		return false
 	}
@@ -268,20 +298,27 @@ func CheckAttrName(attrName, authorityName string) bool {
 	return attrName[:colonIndex] == authorityName
 }
 
-// GetAuthorityNameFromAttrName 优化的权威名称提取
-// 根据属性名称获取组织/用户名，出错返回空字符串
+// GetAuthorityNameFromAttrNameOptimized 优化的权威名称提取
 // 优化点：
 // 1. 使用 Index 代替 SplitN
 // 2. 添加更多验证
-func GetAuthorityNameFromAttrName(attrName string) string {
+func GetAuthorityNameFromAttrNameOptimized(attrName string) (string, error) {
 	if attrName == "" {
-		return ""
+		return "", errors.New("属性名称不能为空")
 	}
 
 	colonIndex := strings.Index(attrName, ":")
-	if colonIndex == -1 || colonIndex == 0 || colonIndex == len(attrName)-1 {
-		return ""
+	if colonIndex == -1 {
+		return "", errors.New("属性名称格式错误：缺少冒号分隔符")
+	}
+	if colonIndex == 0 {
+		return "", errors.New("属性名称格式错误：权威名称为空")
+	}
+	if colonIndex == len(attrName)-1 {
+		return "", errors.New("属性名称格式错误：属性值为空")
 	}
 
-	return attrName[:colonIndex]
+	return attrName[:colonIndex], nil
 }
+
+/* Utility SECTION> */

@@ -3,10 +3,11 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Nik-U/pbc"
 	"math/big"
 	"reflect"
 	"strconv"
+
+	"github.com/Nik-U/pbc"
 )
 
 var specialHandle map[string]struct{}
@@ -104,7 +105,7 @@ func Deserialize2Struct(bytes []byte, obj interface{}) error {
 		fmt.Println(err.Error())
 		return err
 	}
-	obj, e := deserialize2Struct(data, obj)
+	_, e := deserialize2Struct(data, obj)
 	return e
 }
 
