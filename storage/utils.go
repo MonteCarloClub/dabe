@@ -3,7 +3,6 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 
 	model "github.com/MonteCarloClub/dabe/model"
 	"github.com/Nik-U/pbc"
@@ -12,8 +11,8 @@ import (
 // DABESerialized DABE序列化结构
 type DABESerialized struct {
 	CurveParam *CurveParamSerialized `json:"curve_param"`
-	G          []byte                `json:"g"`
-	EGG        []byte                `json:"egg"`
+	G          string                `json:"g"`
+	EGG        string                `json:"egg"`
 }
 
 // CurveParamSerialized 曲线参数序列化结构
@@ -28,23 +27,16 @@ func SerializeDABE(dabe *model.DABE) ([]byte, error) {
 		return nil, fmt.Errorf("DABE parameter is nil")
 	}
 
-	// 序列化曲线参数
-	curveParamSerialized, err := serializeCurveParam(dabe.CurveParam)
-	if err != nil {
-		return nil, fmt.Errorf("failed to serialize curve param: %v", err)
-	}
-
 	// 序列化G元素
-	gBytes := dabe.G.Bytes()
+	gString := dabe.G.String()
 
 	// 序列化EGG元素
-	eggBytes := dabe.EGG.Bytes()
+	eggString := dabe.EGG.String()
 
 	// 构建序列化结构
 	dabeData := DABESerialized{
-		CurveParam: curveParamSerialized,
-		G:          gBytes,
-		EGG:        eggBytes,
+		G:   gString,
+		EGG: eggString,
 	}
 
 	// JSON序列化
@@ -62,68 +54,27 @@ func DeserializeDABE(data []byte) (*model.DABE, error) {
 		return nil, fmt.Errorf("failed to unmarshal DABE data: %v", err)
 	}
 
-	// 反序列化曲线参数
-	curveParam, err := deserializeCurveParam(dabeData.CurveParam)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize curve param: %v", err)
-	}
-
 	// 创建DABE实例
 	dabe := &model.DABE{
-		CurveParam: curveParam,
+		CurveParam: new(model.CurveParam),
 	}
+	dabe.CurveParam.Initialize()
 
+	serializer := NewElementSerializer()
 	// 反序列化G元素
-	dabe.G = curveParam.Get0FromG1()
-	dabe.G.SetBytes(dabeData.G)
+	desG, err := serializer.DeserializeElement(dabeData.G, dabe.CurveParam, "G1")
+	if err != nil {
+		return nil, fmt.Errorf("failed to deserialize G element: %v", err)
+	}
+	dabe.G = desG
 
 	// 反序列化EGG元素
-	dabe.EGG = curveParam.Get0FromGT()
-	dabe.EGG.SetBytes(dabeData.EGG)
-
+	desEGG, err := serializer.DeserializeElement(dabeData.EGG, dabe.CurveParam, "GT")
+	if err != nil {
+		return nil, fmt.Errorf("failed to deserialize EGG element: %v", err)
+	}
+	dabe.EGG = desEGG
 	return dabe, nil
-}
-
-// 序列化曲线参数
-func serializeCurveParam(curveParam *model.CurveParam) (*CurveParamSerialized, error) {
-	if curveParam == nil {
-		return nil, fmt.Errorf("curve param is nil")
-	}
-
-	// 序列化大整数p
-	pStr := curveParam.GetP().String()
-
-	// 序列化PBC参数
-	paramsBytes := curveParam.Param.String()
-
-	return &CurveParamSerialized{
-		P:      pStr,
-		Params: []byte(paramsBytes),
-	}, nil
-}
-
-// 反序列化曲线参数
-func deserializeCurveParam(data *CurveParamSerialized) (*model.CurveParam, error) {
-	if data == nil {
-		return nil, fmt.Errorf("curve param data is nil")
-	}
-
-	// 反序列化大整数p
-	p := new(big.Int)
-	p.SetString(data.P, 10)
-
-	// 创建曲线参数实例
-	curveParam := &model.CurveParam{}
-	// 由于CurveParam字段是私有的，我们重新初始化
-	// 在实际应用中，应该确保初始化的参数与原始参数一致
-	curveParam.Initialize()
-
-	// 验证重新初始化的参数是否与序列化的匹配
-	if curveParam.GetP().Cmp(p) != 0 {
-		return nil, fmt.Errorf("deserialized curve param does not match original")
-	}
-
-	return curveParam, nil
 }
 
 // UserSerialized 用户序列化结构

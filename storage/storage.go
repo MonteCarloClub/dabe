@@ -19,17 +19,17 @@ func NewElementSerializer() *ElementSerializer {
 	return &ElementSerializer{}
 }
 
-// SerializeElement 序列化PBC元素为字节数组
-func (es *ElementSerializer) SerializeElement(element *pbc.Element) ([]byte, error) {
+// SerializeElement 序列化PBC元素为string
+func (es *ElementSerializer) SerializeElement(element *pbc.Element) (string, error) {
 	if element == nil {
-		return nil, nil
+		return "", nil
 	}
-	return element.Bytes(), nil
+	return element.String(), nil
 }
 
 // DeserializeElement 反序列化PBC元素
-func (es *ElementSerializer) DeserializeElement(data []byte, curveParam *model.CurveParam, fieldType string) (*pbc.Element, error) {
-	if data == nil || len(data) == 0 {
+func (es *ElementSerializer) DeserializeElement(data string, curveParam *model.CurveParam, fieldType string) (*pbc.Element, error) {
+	if data == "" || len(data) == 0 {
 		return nil, nil
 	}
 
@@ -39,13 +39,13 @@ func (es *ElementSerializer) DeserializeElement(data []byte, curveParam *model.C
 		element = curveParam.Get0FromG1()
 	case "GT":
 		element = curveParam.Get0FromGT()
-	case "Zr":
+	case "Zn":
 		element = curveParam.Get0FromZn()
 	default:
 		return nil, fmt.Errorf("unsupported field type: %s", fieldType)
 	}
 
-	element.SetBytes(data)
+	element.SetString(data, 10)
 	return element, nil
 }
 
@@ -150,7 +150,7 @@ func (fs *FileStorage) SaveAuthority(authority model.Authority, authorityType st
 			if err != nil {
 				return err
 			}
-			attributes[attrName] = apkBytes
+			attributes[attrName] = []byte(apkBytes)
 		}
 	}
 
@@ -173,7 +173,7 @@ func (fs *FileStorage) SaveAuthority(authority model.Authority, authorityType st
 	authorityFile := AuthorityFile{
 		Name:         authorityName,
 		Type:         authorityType,
-		PublicKey:    pkBytes,
+		PublicKey:    []byte(pkBytes),
 		Attributes:   attributes,
 		RegisterTime: getCurrentTimestamp(),
 	}
@@ -320,7 +320,7 @@ func (fs *FileStorage) SaveAttributePublicKeys(pkMap map[string]*model.APK) erro
 		if err != nil {
 			return err
 		}
-		attrPKData[attrName] = apkBytes
+		attrPKData[attrName] = []byte(apkBytes)
 	}
 
 	// 保存到文件
@@ -351,7 +351,7 @@ func (fs *FileStorage) LoadAttributePublicKeys(curveParam *model.CurveParam) (ma
 	// 反序列化属性公钥
 	pkMap := make(map[string]*model.APK)
 	for attrName, apkBytes := range attrPKData {
-		gy, err := fs.serializer.DeserializeElement(apkBytes, curveParam, "G1")
+		gy, err := fs.serializer.DeserializeElement(string(apkBytes), curveParam, "G1")
 		if err != nil {
 			return nil, err
 		}
