@@ -45,7 +45,7 @@ func (es *ElementSerializer) DeserializeElement(data string, curveParam *model.C
 		return nil, fmt.Errorf("unsupported field type: %s", fieldType)
 	}
 
-	element.SetString(data, 10)
+	element.SetString(data, 0)
 	return element, nil
 }
 
