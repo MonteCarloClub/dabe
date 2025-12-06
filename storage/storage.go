@@ -127,7 +127,7 @@ func (fs *FileStorage) LoadGlobalParams() (*model.DABE, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to deserialize DABE: %v", err)
 	}
-
+	fmt.Println("DABE, G:", dabe.G.String(), " EGG:", dabe.EGG.String())
 	return dabe, nil
 }
 

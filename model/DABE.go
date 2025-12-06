@@ -21,6 +21,8 @@ func (d *DABE) GlobalSetup() {
 	d.G = d.CurveParam.GetNewG1()
 	d.EGG = d.CurveParam.GetNewGT().Pair(d.G, d.G)
 	fmt.Println("DABE GlobalSetup success")
+	fmt.Println("DABE GlobalParams:G:", d.G.String())
+	fmt.Println("DABE GlobalParams:EGG:", d.EGG.String())
 }
 
 func (d *DABE) UserSetup(name string) *User {

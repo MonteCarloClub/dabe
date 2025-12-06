@@ -67,6 +67,7 @@ func DeserializeDABE(data []byte) (*model.DABE, error) {
 		return nil, fmt.Errorf("failed to deserialize G element: %v", err)
 	}
 	dabe.G = desG
+	fmt.Println(dabe.G.String())
 
 	// 反序列化EGG元素
 	desEGG, err := serializer.DeserializeElement(dabeData.EGG, dabe.CurveParam, "GT")
@@ -74,6 +75,7 @@ func DeserializeDABE(data []byte) (*model.DABE, error) {
 		return nil, fmt.Errorf("failed to deserialize EGG element: %v", err)
 	}
 	dabe.EGG = desEGG
+	fmt.Println(dabe.EGG.String())
 	return dabe, nil
 }
 
